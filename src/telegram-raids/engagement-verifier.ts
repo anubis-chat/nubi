@@ -1,5 +1,5 @@
 import { IAgentRuntime } from "@elizaos/core";
-import { logger } from "../utils/logger";
+import { logger } from "@elizaos/core";
 
 export interface EngagementData {
   tweetId: string;
@@ -82,13 +82,11 @@ export class EngagementVerifier {
         };
       }
 
-      // In a real implementation, this would call X/Twitter API
-      // For now, we'll simulate verification with some logic
-      const isVerified = await this.performEngagementVerification(
-        tweetId,
-        userId,
-        engagementType,
-      );
+      // Execute verification and points calculation in parallel
+      const [isVerified, points] = await Promise.all([
+        this.performEngagementVerification(tweetId, userId, engagementType),
+        this.calculatePoints(tweetId, userId, engagementType),
+      ]);
 
       if (!isVerified) {
         return {
@@ -98,13 +96,6 @@ export class EngagementVerifier {
             "Engagement not found on X. Please ensure you completed the action.",
         };
       }
-
-      // Calculate points based on engagement type and user position
-      const points = await this.calculatePoints(
-        tweetId,
-        userId,
-        engagementType,
-      );
 
       // Record the engagement
       await this.recordEngagement({

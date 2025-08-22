@@ -303,7 +303,6 @@ const nubiPlugin: Plugin = {
   name: "nubi",
   description:
     "NUBI - The Symbiosis of Anubis AI agent plugin with personality, knowledge, and social coordination",
-  version: "2.1.0",
   config: {
     version: "2.1.0",
     author: "ElizaOS Community - NUBI Project",
@@ -396,24 +395,23 @@ const nubiPlugin: Plugin = {
   events: {
     MESSAGE_RECEIVED: [
       // Enhanced message processing with NUBI personality
-      async (runtime: IAgentRuntime, message: Memory) => {
-        logger.debug(`[NUBI] Processing message: ${message.content?.text}`);
+      async (payload: any) => {
+        logger.debug(`[NUBI] Processing message: ${payload?.message?.content?.text}`);
         // Message processing logic would go here
-        return message;
+        return payload;
       },
     ],
     VOICE_MESSAGE_RECEIVED: [
       // Voice message processing
-      async (runtime: IAgentRuntime, message: Memory) => {
+      async (payload: any) => {
         logger.debug(`[NUBI] Processing voice message`);
-        return message;
+        return payload;
       },
     ],
     WORLD_CONNECTED: [
       // World connection events
-      async (runtime: IAgentRuntime) => {
+      async (payload: any) => {
         logger.debug(`[NUBI] World connected`);
-        return true;
       },
     ],
   },

@@ -1,7 +1,7 @@
 import { IAgentRuntime } from "@elizaos/core";
 import { TweetResult } from "../x-integration/x-posting-service";
 import { RaidTracker, RaidSession } from "./raid-tracker";
-import { logger } from "../utils/logger";
+import { logger } from "@elizaos/core";
 import * as yaml from "js-yaml";
 import * as fs from "fs";
 import * as path from "path";

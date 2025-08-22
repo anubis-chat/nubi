@@ -8,7 +8,7 @@
  * "It's not a pyramid scheme if I literally built the pyramids" - Anubis
  */
 
-import { logger } from "./logger";
+import { logger } from "@elizaos/core";
 
 /**
  * Pyramid tracker utility for managing referral chains

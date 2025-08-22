@@ -1,7 +1,7 @@
 import { IAgentRuntime } from "@elizaos/core";
 import { RaidTracker } from "./raid-tracker";
 import { ChatLockManager } from "./chat-lock-manager";
-import { logger } from "../utils/logger";
+import { logger } from "@elizaos/core";
 
 export interface BannedRaider {
   userId: string;

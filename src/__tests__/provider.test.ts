@@ -1,5 +1,5 @@
 import { describe, expect, it, spyOn, beforeAll, afterAll } from "bun:test";
-import plugin from "../plugin";
+import plugin from "../nubi-plugin";
 import type { IAgentRuntime, Memory, State, Provider } from "@elizaos/core";
 import { logger } from "@elizaos/core";
 import { v4 as uuidv4 } from "uuid";
@@ -135,60 +135,68 @@ function createRealMemory(): Memory {
 }
 
 describe("Provider Tests", () => {
-  // Find the HELLO_WORLD_PROVIDER from the providers array
-  const helloWorldProvider = plugin.providers?.find(
-    (provider) => provider.name === "HELLO_WORLD_PROVIDER",
+  // Find actual NUBI providers from the providers array
+  const emotionalStateProvider = plugin.providers?.find(
+    (provider) => provider.name === "EMOTIONAL_STATE",
+  );
+  const enhancedContextProvider = plugin.providers?.find(
+    (provider) => provider.name === "ENHANCED_CONTEXT",
   );
 
-  describe("HELLO_WORLD_PROVIDER", () => {
+  // Use whichever provider exists for testing
+  const testProvider = emotionalStateProvider || enhancedContextProvider;
+
+  describe("NUBI Providers", () => {
     it("should exist in the plugin", () => {
       expect(plugin.providers).toBeDefined();
       expect(Array.isArray(plugin.providers)).toBe(true);
 
       if (plugin.providers) {
         expect(plugin.providers.length).toBeGreaterThan(0);
-        const result = plugin.providers.find(
-          (p) => p.name === "HELLO_WORLD_PROVIDER",
+        // Check for actual NUBI providers
+        const emotionalStateProvider = plugin.providers.find(
+          (p) => p.name === "EMOTIONAL_STATE",
         );
-        expect(result).toBeDefined();
+        const enhancedContextProvider = plugin.providers.find(
+          (p) => p.name === "ENHANCED_CONTEXT",
+        );
+        // At least one NUBI provider should exist
+        expect(emotionalStateProvider || enhancedContextProvider).toBeDefined();
         documentTestResult("Provider exists check", {
-          found: !!result,
+          found: !!(emotionalStateProvider || enhancedContextProvider),
           providers: plugin.providers.map((p) => p.name),
         });
       }
     });
 
     it("should have the correct structure", () => {
-      if (helloWorldProvider) {
-        expect(helloWorldProvider).toHaveProperty(
-          "name",
-          "HELLO_WORLD_PROVIDER",
-        );
-        expect(helloWorldProvider).toHaveProperty("description");
-        expect(helloWorldProvider).toHaveProperty("get");
-        expect(typeof helloWorldProvider.get).toBe("function");
+      if (testProvider) {
+        expect(testProvider).toHaveProperty("name");
+        expect(testProvider).toHaveProperty("description");
+        expect(testProvider).toHaveProperty("get");
+        expect(typeof testProvider.get).toBe("function");
 
         documentTestResult("Provider structure check", {
-          name: helloWorldProvider.name,
-          description: helloWorldProvider.description,
-          hasGetMethod: typeof helloWorldProvider.get === "function",
+          name: testProvider.name,
+          description: testProvider.description,
+          hasGetMethod: typeof testProvider.get === "function",
         });
       }
     });
 
     it("should have a description explaining its purpose", () => {
-      if (helloWorldProvider && helloWorldProvider.description) {
-        expect(typeof helloWorldProvider.description).toBe("string");
-        expect(helloWorldProvider.description.length).toBeGreaterThan(0);
+      if (testProvider && testProvider.description) {
+        expect(typeof testProvider.description).toBe("string");
+        expect(testProvider.description.length).toBeGreaterThan(0);
 
         documentTestResult("Provider description check", {
-          description: helloWorldProvider.description,
+          description: testProvider.description,
         });
       }
     });
 
     it("should return provider data from the get method", async () => {
-      if (helloWorldProvider) {
+      if (testProvider) {
         const runtime = createRealRuntime();
         const message = createRealMemory();
         const state = {
@@ -202,7 +210,7 @@ describe("Provider Tests", () => {
 
         try {
           logger.info("Calling provider.get with real implementation");
-          result = await helloWorldProvider.get(runtime, message, state);
+          result = await testProvider.get(runtime, message, state);
 
           expect(result).toBeDefined();
           expect(result).toHaveProperty("text");
@@ -231,7 +239,7 @@ describe("Provider Tests", () => {
     });
 
     it("should handle error conditions gracefully", async () => {
-      if (helloWorldProvider) {
+      if (testProvider) {
         const runtime = createRealRuntime();
         // Create an invalid memory object to simulate an error scenario
         const invalidMemory = {
@@ -250,7 +258,7 @@ describe("Provider Tests", () => {
 
         try {
           logger.info("Calling provider.get with invalid memory object");
-          result = await helloWorldProvider.get(runtime, invalidMemory, state);
+          result = await testProvider.get(runtime, invalidMemory, state);
 
           // Even with invalid input, it should not throw errors
           expect(result).toBeDefined();

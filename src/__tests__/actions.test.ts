@@ -34,8 +34,8 @@ afterAll(() => {
 
 describe("Actions", () => {
   // Find the HELLO_WORLD action from the plugin
-  const helloWorldAction = plugin.actions?.find(
-    (action) => action.name === "HELLO_WORLD",
+  const nubiAction = plugin.actions?.find(
+    (action) => action.name === "NUBI_RITUAL",
   );
 
   // Run core tests on all plugin actions
@@ -52,37 +52,37 @@ describe("Actions", () => {
     }
   });
 
-  describe("HELLO_WORLD Action", () => {
+  describe("NUBI_RITUAL Action", () => {
     it("should exist in the plugin", () => {
-      expect(helloWorldAction).toBeDefined();
+      expect(nubiAction).toBeDefined();
     });
 
     it("should have the correct structure", () => {
-      if (helloWorldAction) {
-        expect(helloWorldAction).toHaveProperty("name", "HELLO_WORLD");
-        expect(helloWorldAction).toHaveProperty("description");
-        expect(helloWorldAction).toHaveProperty("similes");
-        expect(helloWorldAction).toHaveProperty("validate");
-        expect(helloWorldAction).toHaveProperty("handler");
-        expect(helloWorldAction).toHaveProperty("examples");
-        expect(Array.isArray(helloWorldAction.similes)).toBe(true);
-        expect(Array.isArray(helloWorldAction.examples)).toBe(true);
+      if (nubiAction) {
+        expect(nubiAction).toHaveProperty("name", "NUBI_RITUAL");
+        expect(nubiAction).toHaveProperty("description");
+        expect(nubiAction).toHaveProperty("similes");
+        expect(nubiAction).toHaveProperty("validate");
+        expect(nubiAction).toHaveProperty("handler");
+        expect(nubiAction).toHaveProperty("examples");
+        expect(Array.isArray(nubiAction.similes)).toBe(true);
+        expect(Array.isArray(nubiAction.examples)).toBe(true);
       }
     });
 
-    it("should have GREET and SAY_HELLO as similes", () => {
-      if (helloWorldAction) {
-        expect(helloWorldAction.similes).toContain("GREET");
-        expect(helloWorldAction.similes).toContain("SAY_HELLO");
+    it("should have ritual-related similes", () => {
+      if (nubiAction) {
+        expect(nubiAction.similes).toContain("start ritual");
+        expect(nubiAction.similes).toContain("nubi ritual");
       }
     });
 
     it("should have at least one example", () => {
-      if (helloWorldAction && helloWorldAction.examples) {
-        expect(helloWorldAction.examples.length).toBeGreaterThan(0);
+      if (nubiAction && nubiAction.examples) {
+        expect(nubiAction.examples.length).toBeGreaterThan(0);
 
         // Check first example structure
-        const firstExample = helloWorldAction.examples[0];
+        const firstExample = nubiAction.examples[0];
         expect(firstExample.length).toBeGreaterThan(1); // At least two messages
 
         // First message should be a request
@@ -102,7 +102,7 @@ describe("Actions", () => {
     });
 
     it("should return true from validate function", async () => {
-      if (helloWorldAction) {
+      if (nubiAction) {
         const runtime = createMockRuntime();
         const mockMessage = createMockMessage("Hello!");
         const mockState = createMockState();
@@ -111,7 +111,7 @@ describe("Actions", () => {
         let error: Error | null = null;
 
         try {
-          result = await helloWorldAction.validate(
+          result = await nubiAction.validate(
             runtime,
             mockMessage,
             mockState,
@@ -127,7 +127,7 @@ describe("Actions", () => {
     });
 
     it("should call back with hello world response from handler", async () => {
-      if (helloWorldAction) {
+      if (nubiAction) {
         const runtime = createMockRuntime();
         const mockMessage = createMockMessage("Hello!");
         const mockState = createMockState();
@@ -140,7 +140,7 @@ describe("Actions", () => {
         };
 
         try {
-          await helloWorldAction.handler(
+          await nubiAction.handler(
             runtime,
             mockMessage,
             mockState,

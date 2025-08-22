@@ -117,6 +117,29 @@ export const createMockRuntime = (): IAgentRuntime => {
       delete: async () => true,
       getKeys: async () => [],
     },
+    // Add database connection method
+    getConnection: mock().mockResolvedValue({
+      query: mock().mockResolvedValue([]),
+      close: mock().mockResolvedValue(undefined),
+    }),
+    useModel: mock().mockImplementation(async (modelType, params) => {
+      // Return contextually appropriate responses based on input
+      const text = params.text || "";
+      if (text.includes("excited") || text.includes("enthusiasm")) {
+        return { text: "🚀 This is awesome and exciting!" };
+      }
+      if (text.includes("friend") || text.includes("casual")) {
+        return { text: "hey friend, what's up!" };
+      }
+      if (text.includes("greeting") || text.includes("hello")) {
+        return { text: "gm! hello there" };
+      }
+      if (text.includes("playful") || text.includes("mood")) {
+        return { text: "haha that's funny! loving this mood 😄" };
+      }
+      return { text: "AI generated response" };
+    }),
+    setSetting: mock().mockResolvedValue(undefined),
     // Add real memory functionality
     memory: {
       add: async () => {},
@@ -130,6 +153,10 @@ export const createMockRuntime = (): IAgentRuntime => {
     providers: [],
     getService: mock(),
     processActions: mock(),
+    composeState: mock().mockResolvedValue({}), // Add composeState for ElizaOS compatibility
+    agentId: "test-agent-id" as any,
+    useModel: mock(),
+    generateText: mock(),
   } as any as IAgentRuntime;
 };
 

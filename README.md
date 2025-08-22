@@ -1,183 +1,230 @@
-# Supabase CLI
+# 🔮 Anubis Agent God Mode
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+🔮 **The Symbiosis of Anubis** - Advanced ElizaOS agent with dynamic personality evolution and Telegram raid coordination.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+NUBI is an advanced ElizaOS-based AI agent built for Anubis.Chat - a community-driven AI platform that embodies the ancient jackal spirit with modern market wisdom.
 
-This repository contains all the functionality for Supabase CLI.
+## Features
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+- 🧠 **Dynamic Personality Evolution** - AI personality that adapts and evolves based on interactions
+- ⚡ **Enhanced Realtime System** - Unified ElizaOS Socket.IO + Supabase Realtime integration
+- 🚀 **Telegram Raid Coordination** - Advanced raid management with leaderboards and scoring
+- 🔗 **Cross-Platform Identity Linking** - Unified user identities across Discord, Telegram, Twitter
+- 🎯 **Contextual Response Generation** - Database-driven context awareness and semantic memory
+- 📊 **Community Management** - Real-time analytics and user engagement tracking
+- 🛡️ **Anti-Detection Systems** - Human-like response variation patterns
+- 🌐 **Multi-Transport Communication** - Discord, Telegram, Twitter, HTTP support
 
-## Getting started
+## Getting Started
 
-### Install the CLI
+### Prerequisites
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+- Node.js 18+ or Bun runtime
+- PostgreSQL database (or use PGLite for development)
+- API keys for desired platforms (OpenAI, Discord, Telegram, etc.)
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/anubis-chat/nubi
+cd nubi
+```
+
+2. Install dependencies:
+```bash
+bun install
+```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your API keys and configuration
+```
+
+4. Initialize the database:
+```bash
+bun run db:setup
+```
+
+### Development
 
 ```bash
-npm i supabase --save-dev
+# Development mode (uses PGLite)
+bun run dev
+
+# Production mode (uses PostgreSQL)
+bun run start:production
+
+# Run tests
+bun test
+
+# Type checking
+bun run type-check
 ```
 
-To install the beta release channel:
+## Architecture
+
+### Core Services
+
+- **Enhanced Realtime Service** - Unified Socket.IO + Supabase Realtime
+- **Database Memory Service** - Semantic memory with vector embeddings
+- **Personality Evolution Service** - Dynamic trait adaptation
+- **Telegram Raids Service** - Raid coordination and community engagement
+- **Cross-Platform Identity Service** - User identity management
+
+### ElizaOS Integration
+
+NUBI is built on the ElizaOS framework, providing:
+- Plugin architecture with actions, providers, and evaluators
+- Character-driven personality system
+- Native AI response generation
+- Multi-model support (OpenAI, Anthropic, etc.)
+
+### Database Schema
+
+- **User Identities** - Cross-platform user linking
+- **Personality Snapshots** - Evolution tracking over time
+- **Community Stats** - Engagement metrics and leaderboards
+- **Raid Sessions** - Telegram raid coordination
+- **Memory Records** - Semantic memory storage
+
+## Configuration
+
+### Environment Variables
+
+Key configuration options:
 
 ```bash
-npm i supabase@beta --save-dev
+# Core API Keys
+OPENAI_API_KEY=your_openai_key
+ANTHROPIC_API_KEY=your_anthropic_key
+
+# Platform Integration
+TELEGRAM_BOT_TOKEN=your_telegram_token
+DISCORD_API_TOKEN=your_discord_token
+TWITTER_API_KEY=your_twitter_key
+
+# Database
+DATABASE_URL=your_postgresql_url
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_key
+
+# NUBI Features
+RAIDS_ENABLED=true
+AUTO_RAIDS=false
+RAID_INTERVAL_HOURS=6
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+### YAML Configuration
 
+Advanced configuration in `config/anubis-config.yaml`:
+
+```yaml
+personality:
+  evolution_rate: 0.1
+  traits:
+    confidence: 0.8
+    creativity: 0.7
+    analytical: 0.9
+
+community:
+  engagement_threshold: 5
+  leaderboard_size: 100
+  point_multipliers:
+    raids: 2.0
+    discussions: 1.5
 ```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
 
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+## Testing
 
-<details>
-  <summary><b>macOS</b></summary>
-
-  Available via [Homebrew](https://brew.sh). To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
+NUBI includes comprehensive tests following ElizaOS patterns:
 
 ```bash
-supabase bootstrap
+# Run all tests
+bun test
+
+# Run specific test files
+bun test src/__tests__/character.test.ts
+
+# Run with coverage
+bun run test:coverage
+
+# Watch mode
+bun run test:watch
 ```
 
-Or using npx:
+### Test Structure
+
+- **Unit Tests** - Individual service and component tests
+- **Integration Tests** - End-to-end functionality tests
+- **ElizaOS Compliance** - Framework compatibility tests
+
+## Deployment
+
+### Production Setup
+
+1. Configure production environment:
+```bash
+NODE_ENV=production
+DATABASE_URL=your_production_db
+```
+
+2. Build and start:
+```bash
+bun run build
+bun run start:production
+```
+
+### Docker Deployment
+
+```dockerfile
+FROM oven/bun:1-alpine
+WORKDIR /app
+COPY . .
+RUN bun install --production
+RUN bun run build
+CMD ["bun", "run", "start:production"]
+```
+
+### Supabase Edge Functions
+
+Deploy serverless functions:
 
 ```bash
-npx supabase bootstrap
+supabase functions deploy webhook-processor
+supabase functions deploy raid-coordinator
+supabase functions deploy analytics-engine
 ```
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+## Contributing
 
-## Docs
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Follow the coding standards and run tests
+4. Commit changes: `git commit -m 'Add amazing feature'`
+5. Push to branch: `git push origin feature/amazing-feature`
+6. Open a Pull Request
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+### Development Guidelines
 
-## Breaking changes
+- Follow ElizaOS plugin patterns
+- Maintain type safety with TypeScript
+- Write comprehensive tests
+- Use semantic commit messages
+- Update documentation for new features
 
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+## License
 
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+MIT License - see [LICENSE](LICENSE) file for details.
 
-## Developing
+## Support
 
-To run from source:
+- **Documentation**: [NUBI Docs](https://docs.anubis.chat)
+- **Discord**: [Anubis Community](https://discord.gg/anubis)
+- **Telegram**: [@AnubisChat](https://t.me/anubischat)
+- **Twitter**: [@AnubisChat](https://twitter.com/anubischat)
 
-```sh
-# Go >= 1.22
-go run . help
-```
+---
+
+Built with ❤️ by the Anubis.Chat team using ElizaOS framework.

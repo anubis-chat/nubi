@@ -1,5 +1,5 @@
 import { IAgentRuntime, Memory } from "@elizaos/core";
-import { logger } from "../utils/logger";
+import { logger } from "@elizaos/core";
 
 export interface TweetResult {
   url: string;

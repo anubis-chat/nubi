@@ -10,7 +10,7 @@ import { DatabaseMemoryService } from "../services/database-memory-service";
 
 /**
  * Enhanced Context Provider for NUBI
- * 
+ *
  * Builds rich context from multiple database sources:
  * - Recent and semantic memories
  * - Memory patterns and entity interactions
@@ -19,7 +19,8 @@ import { DatabaseMemoryService } from "../services/database-memory-service";
  */
 export const enhancedContextProvider: Provider = {
   name: "NUBI_ENHANCED_CONTEXT",
-  description: "Database-driven context with full personality and memory integration",
+  description:
+    "Database-driven context with full personality and memory integration",
   dynamic: true,
 
   get: async (
@@ -29,44 +30,69 @@ export const enhancedContextProvider: Provider = {
   ): Promise<ProviderResult> => {
     try {
       // Get database memory service
-      const memoryService = runtime.getService<DatabaseMemoryService>("database_memory");
-      
+      const memoryService =
+        runtime.getService<DatabaseMemoryService>("database_memory");
+
       if (!memoryService) {
-        logger.warn("[ENHANCED_CONTEXT] Database memory service not available, falling back to basic context");
+        logger.warn(
+          "[ENHANCED_CONTEXT] Database memory service not available, falling back to basic context",
+        );
         return getBasicContext(runtime, message);
       }
 
       // Extract topic from message for semantic search
-      const messageText = message.content.text || "";
+      const messageText =
+        typeof message.content === "string"
+          ? message.content
+          : message.content?.text || JSON.stringify(message.content) || "";
       const topic = extractTopic(messageText);
-      
+
       // Get comprehensive context from database
       const context = await memoryService.getEnhancedContext(
         message.roomId,
-        (message as any).userId || message.agentId,
+        (message as any).userId || (message as any).entityId || message.agentId,
         topic,
-        20 // Limit recent memories
+        25, // Increase memory limit for better context
       );
 
       // Build context text with all available information
       const contextText = buildContextText(context, messageText);
-      
+
       // Extract structured values for response generation
       const contextValues = extractContextValues(context, messageText);
-      
+
       // Add rich data for advanced processing
+      const messageAnalysis = analyzeMessage(messageText);
       const contextData = {
         ...context,
-        messageAnalysis: analyzeMessage(messageText),
+        messageAnalysis,
         responseHints: generateResponseHints(context, messageText),
+        contextQuality: {
+          hasMemories: context.recentMemories.length > 0,
+          hasPatterns: context.patterns.length > 0,
+          hasRelationships: context.relationships.length > 0,
+          hasEmotionalState: !!context.emotionalState,
+          hasUserRecords: context.userRecords.length > 0,
+          semanticRelevance:
+            context.semanticMemories.length > 0 ? "high" : "none",
+        },
+        processingHints: {
+          responseComplexity: messageAnalysis.complexity,
+          topicRelevance: topic ? "targeted" : "general",
+          userFamiliarity:
+            context.relationships.length > 0 ? "established" : "new",
+          emotionalIntensity: context.emotionalState?.intensity || 70,
+        },
         timestamp: Date.now(),
       };
 
-      logger.debug("[ENHANCED_CONTEXT] Built rich context: " + 
-        `memories=${context.recentMemories.length}, ` +
-        `patterns=${context.patterns.length}, ` +
-        `relationships=${context.relationships.length}, ` +
-        `emotional=${context.emotionalState?.current_state}`);
+      logger.debug(
+        "[ENHANCED_CONTEXT] Built rich context: " +
+          `memories=${context.recentMemories.length}, ` +
+          `patterns=${context.patterns.length}, ` +
+          `relationships=${context.relationships.length}, ` +
+          `emotional=${context.emotionalState?.current_state}`,
+      );
 
       return {
         text: contextText,
@@ -91,7 +117,9 @@ function buildContextText(context: any, messageText: string): string {
 
   // Emotional state
   if (context.emotionalState) {
-    parts.push(`emotional_state: ${context.emotionalState.current_state} (${context.emotionalState.intensity}% intensity)`);
+    parts.push(
+      `emotional_state: ${context.emotionalState.current_state} (${context.emotionalState.intensity}% intensity)`,
+    );
     if (context.emotionalState.triggers?.length > 0) {
       parts.push(`triggers: ${context.emotionalState.triggers.join(", ")}`);
     }
@@ -100,14 +128,14 @@ function buildContextText(context: any, messageText: string): string {
   // Recent conversation context
   if (context.recentMemories.length > 0) {
     parts.push(`recent_messages: ${context.recentMemories.length}`);
-    
+
     // Include brief summary of recent topics
     const recentTopics = context.recentMemories
       .slice(0, 3)
       .map((m: any) => extractTopic(m.content.text || ""))
       .filter(Boolean)
       .join(", ");
-    
+
     if (recentTopics) {
       parts.push(`recent_topics: ${recentTopics}`);
     }
@@ -142,12 +170,16 @@ function buildContextText(context: any, messageText: string): string {
 
   // Community context
   if (context.communityContext.participants) {
-    parts.push(`community: ${context.communityContext.participants} participants, ${context.communityContext.messages} messages`);
+    parts.push(
+      `community: ${context.communityContext.participants} participants, ${context.communityContext.messages} messages`,
+    );
   }
 
   // Agent statistics
   if (context.agentStats.totalMessages) {
-    parts.push(`experience: ${context.agentStats.totalMessages} messages, ${context.agentStats.uniqueUsers} unique users`);
+    parts.push(
+      `experience: ${context.agentStats.totalMessages} messages, ${context.agentStats.uniqueUsers} unique users`,
+    );
   }
 
   // Message analysis
@@ -160,34 +192,37 @@ function buildContextText(context: any, messageText: string): string {
 /**
  * Extract structured values for response generation
  */
-function extractContextValues(context: any, messageText: string): Record<string, any> {
+function extractContextValues(
+  context: any,
+  messageText: string,
+): Record<string, any> {
   const analysis = analyzeMessage(messageText);
-  
+
   return {
     // Message analysis
     isQuestion: analysis.isQuestion,
     sentiment: analysis.sentiment,
     topics: analysis.topics,
     intent: analysis.intent,
-    
+
     // Context metrics
     conversationDepth: context.recentMemories.length,
     hasRelationship: context.relationships.length > 0,
     emotionalState: context.emotionalState?.current_state || "neutral",
     emotionalIntensity: context.emotionalState?.intensity || 70,
-    
+
     // Engagement metrics
     participantCount: context.communityContext.participants || 0,
     messageCount: context.communityContext.messages || 0,
-    
+
     // Pattern insights
     dominantPattern: context.patterns[0]?.pattern_type || null,
     patternCount: context.patterns.length,
-    
+
     // Entity awareness
     mentionedEntities: context.entities.map((e: any) => e.entity_name),
     entityCount: context.entities.length,
-    
+
     // Experience level
     totalExperience: context.agentStats.totalMessages || 0,
     uniqueInteractions: context.agentStats.uniqueUsers || 0,
@@ -256,9 +291,12 @@ function generateResponseHints(context: any, messageText: string): string[] {
  */
 function analyzeMessage(text: string): any {
   const lowerText = text.toLowerCase();
-  
+
   return {
-    isQuestion: text.includes("?") || lowerText.includes("what") || lowerText.includes("how"),
+    isQuestion:
+      text.includes("?") ||
+      lowerText.includes("what") ||
+      lowerText.includes("how"),
     sentiment: analyzeSentiment(text),
     topics: extractTopics(text),
     intent: detectIntent(text),
@@ -271,9 +309,10 @@ function analyzeMessage(text: string): any {
  * Analyze sentiment of text
  */
 function analyzeSentiment(text: string): string {
-  const positive = /good|great|awesome|love|thanks|appreciate|nice|cool|amazing/i;
+  const positive =
+    /good|great|awesome|love|thanks|appreciate|nice|cool|amazing/i;
   const negative = /bad|hate|sucks|terrible|awful|stupid|dumb|annoying/i;
-  
+
   if (positive.test(text)) return "positive";
   if (negative.test(text)) return "negative";
   return "neutral";
@@ -285,15 +324,16 @@ function analyzeSentiment(text: string): string {
 function extractTopics(text: string): string[] {
   const topics: string[] = [];
   const lowerText = text.toLowerCase();
-  
-  if (/crypto|bitcoin|sol|eth|token|memecoin/i.test(text)) topics.push("crypto");
+
+  if (/crypto|bitcoin|sol|eth|token|memecoin/i.test(text))
+    topics.push("crypto");
   if (/anubis|platform|chat/i.test(text)) topics.push("anubis");
   if (/trade|trading|market|price|chart/i.test(text)) topics.push("trading");
   if (/defi|yield|stake|liquidity/i.test(text)) topics.push("defi");
   if (/nft|collection|mint/i.test(text)) topics.push("nft");
   if (/community|friend|group/i.test(text)) topics.push("community");
   if (/help|how|what|explain/i.test(text)) topics.push("support");
-  
+
   return topics;
 }
 
@@ -310,13 +350,14 @@ function extractTopic(text: string): string | undefined {
  */
 function detectIntent(text: string): string {
   const lowerText = text.toLowerCase();
-  
+
   if (/^(hi|hello|hey|gm|good morning)/i.test(text)) return "greeting";
-  if (/\?|^(what|how|why|when|where|who|can|is|are|do|does)/i.test(text)) return "question";
+  if (/\?|^(what|how|why|when|where|who|can|is|are|do|does)/i.test(text))
+    return "question";
   if (/help|support|issue|problem|error/i.test(text)) return "support";
   if (/thanks|thank you|appreciate/i.test(text)) return "gratitude";
   if (/bye|goodbye|see you|later/i.test(text)) return "farewell";
-  
+
   return "statement";
 }
 
@@ -326,7 +367,7 @@ function detectIntent(text: string): string {
 function calculateComplexity(text: string): string {
   const wordCount = text.split(/\s+/).length;
   const avgWordLength = text.replace(/\s/g, "").length / wordCount;
-  
+
   if (wordCount < 5) return "simple";
   if (wordCount > 20 || avgWordLength > 6) return "complex";
   return "moderate";
@@ -338,21 +379,26 @@ function calculateComplexity(text: string): string {
 function analyzeMessageType(text: string): string {
   const intent = detectIntent(text);
   const topics = extractTopics(text);
-  
-  if (intent === "question" && topics.includes("crypto")) return "crypto_question";
-  if (intent === "question" && topics.includes("anubis")) return "platform_inquiry";
+
+  if (intent === "question" && topics.includes("crypto"))
+    return "crypto_question";
+  if (intent === "question" && topics.includes("anubis"))
+    return "platform_inquiry";
   if (intent === "support") return "support_request";
   if (topics.includes("community")) return "community_engagement";
   if (intent === "greeting") return "greeting";
   if (intent === "question") return "general_question";
-  
+
   return "general_comment";
 }
 
 /**
  * Fallback to basic context if database is unavailable
  */
-async function getBasicContext(runtime: IAgentRuntime, message: Memory): Promise<ProviderResult> {
+async function getBasicContext(
+  runtime: IAgentRuntime,
+  message: Memory,
+): Promise<ProviderResult> {
   try {
     const recentMemories = await runtime.getMemories({
       roomId: message.roomId,

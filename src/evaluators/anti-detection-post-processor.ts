@@ -68,11 +68,15 @@ export const antiDetectionPostProcessor: Evaluator = {
       // Get response patterns from YAML config
       const yamlConfig = (runtime as any).yamlConfigManager?.getConfig();
       const responsePatterns = yamlConfig?.agent?.response_patterns;
-      
+
       // Apply random subset of anti-detection patterns with YAML-configured probabilities
       const patterns = [
         { name: "Vary Articles", method: varyArticles, probability: 0.15 },
-        { name: "Introduce Typos", method: introduceTypos, probability: responsePatterns?.typo_rate || 0.03 },
+        {
+          name: "Introduce Typos",
+          method: introduceTypos,
+          probability: responsePatterns?.typo_rate || 0.03,
+        },
         { name: "Rotate Phrases", method: rotatePhases, probability: 0.4 },
         {
           name: "Add Personalization",

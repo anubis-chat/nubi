@@ -33,8 +33,10 @@ export const knowledgeBaseProvider: Provider = {
       // Detect mentioned protocols
       const mentionedProtocols: string[] = [];
       const protocolInfo: Record<string, any> = {};
-      
-      for (const [protocolName, info] of Object.entries(knowledge.solana_protocols || {})) {
+
+      for (const [protocolName, info] of Object.entries(
+        knowledge.solana_protocols || {},
+      )) {
         if (text.includes(protocolName.toLowerCase())) {
           mentionedProtocols.push(protocolName);
           protocolInfo[protocolName] = info;
@@ -44,30 +46,47 @@ export const knowledgeBaseProvider: Provider = {
       // Get relevant personality quirks
       const relevantQuirks: string[] = [];
       const personalityQuirks = knowledge.personality_quirks || [];
-      
+
       // Add quirks based on conversation context
-      if (text.includes("ancient") || text.includes("egypt") || text.includes("history")) {
-        relevantQuirks.push(...personalityQuirks.filter((q: string) => 
-          q.includes("ancient") || q.includes("Egypt") || q.includes("deity")
-        ));
+      if (
+        text.includes("ancient") ||
+        text.includes("egypt") ||
+        text.includes("history")
+      ) {
+        relevantQuirks.push(
+          ...personalityQuirks.filter(
+            (q: string) =>
+              q.includes("ancient") ||
+              q.includes("Egypt") ||
+              q.includes("deity"),
+          ),
+        );
       }
-      
-      if (text.includes("ethereum") || text.includes("eth") || text.includes("gas")) {
-        relevantQuirks.push(...personalityQuirks.filter((q: string) => 
-          q.includes("gas fees") || q.includes("ETH")
-        ));
+
+      if (
+        text.includes("ethereum") ||
+        text.includes("eth") ||
+        text.includes("gas")
+      ) {
+        relevantQuirks.push(
+          ...personalityQuirks.filter(
+            (q: string) => q.includes("gas fees") || q.includes("ETH"),
+          ),
+        );
       }
 
       if (text.includes("validator") || text.includes("staking")) {
-        relevantQuirks.push(...personalityQuirks.filter((q: string) => 
-          q.includes("validator") || q.includes("performance")
-        ));
+        relevantQuirks.push(
+          ...personalityQuirks.filter(
+            (q: string) => q.includes("validator") || q.includes("performance"),
+          ),
+        );
       }
 
       // Get relevant strong opinions
       const relevantOpinions: Record<string, string> = {};
       const strongOpinions = knowledge.strong_opinions || {};
-      
+
       for (const [topic, opinion] of Object.entries(strongOpinions)) {
         if (text.includes(topic.toLowerCase())) {
           relevantOpinions[topic] = opinion as string;
@@ -76,13 +95,22 @@ export const knowledgeBaseProvider: Provider = {
 
       // Get market insights if relevant
       const marketInsights: Record<string, string> = {};
-      if (text.includes("market") || text.includes("price") || text.includes("bull") || text.includes("bear")) {
+      if (
+        text.includes("market") ||
+        text.includes("price") ||
+        text.includes("bull") ||
+        text.includes("bear")
+      ) {
         Object.assign(marketInsights, knowledge.market_insights || {});
       }
 
       // Get favorite validators if relevant
       const favoriteValidators: string[] = [];
-      if (text.includes("validator") || text.includes("staking") || text.includes("recommend")) {
+      if (
+        text.includes("validator") ||
+        text.includes("staking") ||
+        text.includes("recommend")
+      ) {
         favoriteValidators.push(...(knowledge.favorite_validators || []));
       }
 
@@ -95,25 +123,29 @@ export const knowledgeBaseProvider: Provider = {
         // Personality elements
         personalityQuirks: relevantQuirks,
         hasPersonalityQuirks: relevantQuirks.length > 0,
-        
+
         // Opinions and preferences
         strongOpinions: relevantOpinions,
         hasStrongOpinions: Object.keys(relevantOpinions).length > 0,
-        
+
         // Market analysis
         marketInsights,
         hasMarketInsights: Object.keys(marketInsights).length > 0,
-        
+
         // Validator recommendations
         favoriteValidators,
         hasFavoriteValidators: favoriteValidators.length > 0,
 
         // Context flags for response generation
         shouldShareProtocolOpinion: mentionedProtocols.length > 0,
-        shouldAddPersonalityQuirk: relevantQuirks.length > 0 && Math.random() < 0.3,
-        shouldExpressStrongOpinion: Object.keys(relevantOpinions).length > 0 && Math.random() < 0.4,
-        shouldShareMarketInsight: Object.keys(marketInsights).length > 0 && Math.random() < 0.2,
-        shouldRecommendValidators: favoriteValidators.length > 0 && Math.random() < 0.5,
+        shouldAddPersonalityQuirk:
+          relevantQuirks.length > 0 && Math.random() < 0.3,
+        shouldExpressStrongOpinion:
+          Object.keys(relevantOpinions).length > 0 && Math.random() < 0.4,
+        shouldShareMarketInsight:
+          Object.keys(marketInsights).length > 0 && Math.random() < 0.2,
+        shouldRecommendValidators:
+          favoriteValidators.length > 0 && Math.random() < 0.5,
 
         // Meta information
         knowledgeBaseLoaded: true,
@@ -123,7 +155,7 @@ export const knowledgeBaseProvider: Provider = {
       };
     } catch (error) {
       logger.error("[KNOWLEDGE_BASE_PROVIDER] Error:", error);
-      
+
       return {
         knowledgeBaseLoaded: false,
         error: error instanceof Error ? error.message : String(error),

@@ -7,14 +7,67 @@ import {
 } from "@elizaos/core";
 
 /**
+ * Message interface for unified transport handling
+ */
+export interface Message {
+  text: string;
+  userId?: string;
+  roomId?: string;
+  timestamp?: number;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Transport configuration interface
+ */
+export interface TransportConfig {
+  apiKey?: string;
+  baseUrl?: string;
+  retries?: number;
+  timeout?: number;
+  [key: string]: unknown;
+}
+
+/**
+ * Room context interface
+ */
+export interface RoomContext {
+  lastMessage?: {
+    content: Message;
+    timestamp: number;
+  };
+  lastActivity?: number;
+  messageCount?: number;
+  [key: string]: unknown;
+}
+
+/**
+ * Transport info interface
+ */
+export interface TransportInfo {
+  available: boolean;
+  name: string;
+}
+
+/**
+ * Transport stats interface
+ */
+export interface TransportStats {
+  transports: Record<string, TransportInfo>;
+  worlds: number;
+  rooms: number;
+  totalParticipants: number;
+}
+
+/**
  * Transport interface for unified message handling
  */
 export interface Transport {
   name: string;
   isAvailable(): boolean;
-  send(message: any, target?: string): Promise<boolean>;
-  receive?(callback: (message: any) => void): void;
-  configure?(config: any): void;
+  send(message: Message, target?: string): Promise<boolean>;
+  receive?(callback: (message: Message) => void): void;
+  configure?(config: string | TransportConfig): void;
 }
 
 /**
@@ -29,7 +82,7 @@ export class DiscordTransport implements Transport {
     );
   }
 
-  async send(message: any, target?: string): Promise<boolean> {
+  async send(message: Message, target?: string): Promise<boolean> {
     if (!this.isAvailable()) return false;
 
     try {
@@ -42,9 +95,12 @@ export class DiscordTransport implements Transport {
     }
   }
 
-  configure(config: any): void {
+  configure(config: string | TransportConfig): void {
     // Configure Discord-specific settings
-    logger.info("[Discord] Configured with settings:", config);
+    logger.info(
+      "[Discord] Configured with settings:",
+      typeof config === "string" ? config : JSON.stringify(config),
+    );
   }
 }
 
@@ -58,7 +114,7 @@ export class TelegramTransport implements Transport {
     return !!process.env.TELEGRAM_BOT_TOKEN;
   }
 
-  async send(message: any, target?: string): Promise<boolean> {
+  async send(message: Message, target?: string): Promise<boolean> {
     if (!this.isAvailable()) return false;
 
     try {
@@ -71,8 +127,11 @@ export class TelegramTransport implements Transport {
     }
   }
 
-  configure(config: any): void {
-    logger.info("[Telegram] Configured with settings:", config);
+  configure(config: string | TransportConfig): void {
+    logger.info(
+      "[Telegram] Configured with settings:",
+      typeof config === "string" ? config : JSON.stringify(config),
+    );
   }
 }
 
@@ -91,7 +150,7 @@ export class TwitterTransport implements Transport {
     );
   }
 
-  async send(message: any, target?: string): Promise<boolean> {
+  async send(message: Message, target?: string): Promise<boolean> {
     if (!this.isAvailable()) return false;
 
     try {
@@ -104,8 +163,11 @@ export class TwitterTransport implements Transport {
     }
   }
 
-  configure(config: any): void {
-    logger.info("[Twitter] Configured with settings:", config);
+  configure(config: string | TransportConfig): void {
+    logger.info(
+      "[Twitter] Configured with settings:",
+      typeof config === "string" ? config : JSON.stringify(config),
+    );
   }
 }
 
@@ -119,7 +181,7 @@ export class HTTPTransport implements Transport {
     return true; // HTTP always available
   }
 
-  async send(message: any, target?: string): Promise<boolean> {
+  async send(message: Message, target?: string): Promise<boolean> {
     try {
       // Implementation would send HTTP response
       logger.info(`[HTTP] Sending response: ${message.text}`);
@@ -130,8 +192,11 @@ export class HTTPTransport implements Transport {
     }
   }
 
-  configure(config: any): void {
-    logger.info("[HTTP] Configured with settings:", config);
+  configure(config: string | TransportConfig): void {
+    logger.info(
+      "[HTTP] Configured with settings:",
+      typeof config === "string" ? config : JSON.stringify(config),
+    );
   }
 }
 
@@ -143,7 +208,7 @@ export interface World {
   name: string;
   description?: string;
   rooms: Map<string, Room>;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface Room {
@@ -151,9 +216,9 @@ export interface Room {
   worldId: string;
   name: string;
   transport: string;
-  context: any;
+  context: RoomContext;
   participants: Set<string>;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -272,7 +337,7 @@ export class MessageBusService extends Service {
    * Send message through unified bus
    */
   async sendMessage(
-    content: any,
+    content: Message,
     transportName: string,
     target?: string,
     roomId?: string,
@@ -299,23 +364,39 @@ export class MessageBusService extends Service {
   }
 
   /**
-   * Broadcast message to all available transports
+   * Broadcast message to all available transports in parallel
    */
   async broadcastMessage(
-    content: any,
+    content: Message,
     excludeTransports: string[] = [],
   ): Promise<Map<string, boolean>> {
     const results = new Map<string, boolean>();
 
-    for (const [transportName, transport] of this.transports) {
-      if (
-        !excludeTransports.includes(transportName) &&
-        transport.isAvailable()
-      ) {
-        const success = await transport.send(content);
-        results.set(transportName, success);
-      }
-    }
+    // Get eligible transports
+    const eligibleTransports = Array.from(this.transports.entries()).filter(
+      ([transportName, transport]) =>
+        !excludeTransports.includes(transportName) && transport.isAvailable(),
+    );
+
+    // Send to all transports in parallel
+    const sendPromises = eligibleTransports.map(
+      async ([transportName, transport]) => {
+        try {
+          const success = await transport.send(content);
+          return { transportName, success };
+        } catch (error) {
+          logger.error(`Failed to send to ${transportName}:`, error);
+          return { transportName, success: false };
+        }
+      },
+    );
+
+    const sendResults = await Promise.all(sendPromises);
+
+    // Collect results
+    sendResults.forEach(({ transportName, success }) => {
+      results.set(transportName, success);
+    });
 
     const resultsObj = Object.fromEntries(results);
     logger.info(`📢 Broadcast results:`, JSON.stringify(resultsObj));
@@ -377,7 +458,7 @@ export class MessageBusService extends Service {
    */
   async routeMessage(message: Memory, sourceTransport: string): Promise<void> {
     // Find or create room for this message
-    const userId = (message as any).userId || "anonymous";
+    const userId = message.entityId || "anonymous";
     const roomId = message.roomId || `${sourceTransport}-${userId}`;
 
     let room = this.rooms.get(roomId);
@@ -406,8 +487,8 @@ export class MessageBusService extends Service {
   /**
    * Get transport statistics
    */
-  getTransportStats(): Record<string, any> {
-    const stats: Record<string, any> = {};
+  getTransportStats(): TransportStats {
+    const stats: Record<string, TransportInfo> = {};
 
     for (const [name, transport] of this.transports) {
       stats[name] = {

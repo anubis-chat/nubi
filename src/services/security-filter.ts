@@ -12,6 +12,7 @@ export interface SecurityConfig {
   spamWindowMs: number;
   blockDurationMs: number;
   enableObfuscationDetection: boolean;
+  [key: string]: any; // Index signature for Service compatibility
 }
 
 export interface UserStatus {
@@ -32,7 +33,7 @@ export class SecurityFilter extends Service {
   static serviceType = "security-filter" as const;
   capabilityDescription = "Advanced security filtering with prompt injection and spam protection";
 
-  private config: SecurityConfig = {
+  public config: SecurityConfig = {
     maxSpamAttempts: 5,
     spamWindowMs: 60000, // 1 minute
     blockDurationMs: 300000, // 5 minutes

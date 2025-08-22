@@ -124,6 +124,7 @@ describe("Integration: Runtime Initialization", () => {
       getProviderResults: mock().mockResolvedValue([]),
       evaluateProviders: mock().mockResolvedValue([]),
       evaluate: mock().mockResolvedValue([]),
+      composeState: mock().mockResolvedValue({}),
     } as unknown as IAgentRuntime;
 
     // Ensure we're testing safely - to avoid parallel test race conditions
@@ -196,7 +197,7 @@ describeScaffolding("Integration: Project Scaffolding", () => {
       // In a real scenario, you'd use the CLI or API to scaffold
 
       // Copy essential files to test directory
-      const srcFiles = ["index.ts", "plugin.ts", "enhanced-character.ts"];
+      const srcFiles = ["index.ts", "plugin.ts", "nubi-character.ts"];
 
       for (const file of srcFiles) {
         const sourceFilePath = path.join(process.cwd(), "src", file);
@@ -225,7 +226,7 @@ describeScaffolding("Integration: Project Scaffolding", () => {
       // Verify files exist
       expect(fs.existsSync(path.join(TEST_DIR, "index.ts"))).toBe(true);
       expect(fs.existsSync(path.join(TEST_DIR, "plugin.ts"))).toBe(true);
-      expect(fs.existsSync(path.join(TEST_DIR, "enhanced-character.ts"))).toBe(
+      expect(fs.existsSync(path.join(TEST_DIR, "nubi-character.ts"))).toBe(
         true,
       );
       expect(fs.existsSync(path.join(TEST_DIR, "package.json"))).toBe(true);

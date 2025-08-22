@@ -1,5 +1,5 @@
 import { RaidTracker } from "./raid-tracker";
-import { logger } from "../utils/logger";
+import { logger } from "@elizaos/core";
 
 export interface LeaderboardEntry {
   rank: number;

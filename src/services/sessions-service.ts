@@ -1,15 +1,9 @@
-import {
-  Service,
-  IAgentRuntime,
-  Memory,
-  logger,
-  UUID,
-} from "@elizaos/core";
+import { Service, IAgentRuntime, Memory, logger, UUID } from "@elizaos/core";
 import { Client } from "pg";
 
 /**
  * ElizaOS Sessions API Service with Supabase Backend
- * 
+ *
  * Implements full Sessions API compliance with:
  * - Persistent, stateful conversations
  * - Automatic timeout and renewal management
@@ -29,7 +23,7 @@ export interface SessionMessage {
   id: UUID;
   sessionId: UUID;
   senderId: UUID;
-  senderType: 'user' | 'agent';
+  senderType: "user" | "agent";
   content: any;
   timestamp: Date;
   sequenceNumber: number;
@@ -41,7 +35,7 @@ export interface SessionInfo {
   agentId: UUID;
   userId?: UUID;
   roomId?: UUID;
-  status: 'active' | 'expired' | 'ended';
+  status: "active" | "expired" | "ended";
   timeoutMinutes: number;
   autoRenew: boolean;
   expiresAt: Date;
@@ -74,9 +68,10 @@ export class SessionsService extends Service {
 
   private async initialize(): Promise<void> {
     try {
-      const databaseUrl = process.env.DATABASE_URL || 
+      const databaseUrl =
+        process.env.DATABASE_URL ||
         "postgresql://postgres:Anubisdata1!@db.nfnmoqepgjyutcbbaqjg.supabase.co:5432/postgres";
-      
+
       this.dbClient = new Client({
         connectionString: databaseUrl,
       });
@@ -86,14 +81,18 @@ export class SessionsService extends Service {
 
       // Verify agent exists
       const agentCheck = await this.dbClient.query(
-        'SELECT id, name FROM agents WHERE id = $1 LIMIT 1',
-        [this.agentId]
+        "SELECT id, name FROM agents WHERE id = $1 LIMIT 1",
+        [this.agentId],
       );
 
       if (agentCheck.rows.length > 0) {
-        logger.info(`[SESSIONS_SERVICE] Using agent: ${agentCheck.rows[0].name} (${this.agentId})`);
+        logger.info(
+          `[SESSIONS_SERVICE] Using agent: ${agentCheck.rows[0].name} (${this.agentId})`,
+        );
       } else {
-        logger.warn(`[SESSIONS_SERVICE] Agent ${this.agentId} not found in database`);
+        logger.warn(
+          `[SESSIONS_SERVICE] Agent ${this.agentId} not found in database`,
+        );
       }
     } catch (error) {
       logger.error("[SESSIONS_SERVICE] Failed to initialize:", error);
@@ -105,13 +104,16 @@ export class SessionsService extends Service {
    * Create a new session
    */
   async createSession(
-    userId?: UUID, 
-    config: SessionConfig = {}
+    userId?: UUID,
+    config: SessionConfig = {},
   ): Promise<SessionInfo> {
     try {
-      const timeoutMinutes = Math.min(Math.max(config.timeoutMinutes || 30, 5), 1440);
+      const timeoutMinutes = Math.min(
+        Math.max(config.timeoutMinutes || 30, 5),
+        1440,
+      );
       const expiresAt = new Date(Date.now() + timeoutMinutes * 60 * 1000);
-      
+
       // Create associated room if needed
       let roomId: UUID | null = null;
       if (userId) {
@@ -119,7 +121,7 @@ export class SessionsService extends Service {
           `INSERT INTO rooms (id, "agentId", "createdAt", "updatedAt")
            VALUES (gen_random_uuid(), $1, NOW(), NOW())
            RETURNING id`,
-          [this.agentId]
+          [this.agentId],
         );
         roomId = roomResult.rows[0].id;
       }
@@ -137,13 +139,15 @@ export class SessionsService extends Service {
           timeoutMinutes,
           config.autoRenew !== false,
           expiresAt,
-          JSON.stringify(config.metadata || {})
-        ]
+          JSON.stringify(config.metadata || {}),
+        ],
       );
 
       const session = this.formatSessionInfo(result.rows[0]);
-      
-      logger.info(`[SESSIONS_SERVICE] Created session ${session.id} for agent ${this.agentId}`);
+
+      logger.info(
+        `[SESSIONS_SERVICE] Created session ${session.id} for agent ${this.agentId}`,
+      );
       return session;
     } catch (error) {
       logger.error("[SESSIONS_SERVICE] Failed to create session:", error);
@@ -157,19 +161,19 @@ export class SessionsService extends Service {
   async sendSessionMessage(
     sessionId: UUID,
     senderId: UUID,
-    senderType: 'user' | 'agent',
+    senderType: "user" | "agent",
     content: any,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<SessionMessage> {
     try {
       // Verify session is active
       const sessionResult = await this.dbClient!.query(
-        'SELECT * FROM sessions WHERE id = $1 AND status = $2',
-        [sessionId, 'active']
+        "SELECT * FROM sessions WHERE id = $1 AND status = $2",
+        [sessionId, "active"],
       );
 
       if (sessionResult.rows.length === 0) {
-        throw new Error('Session not found or not active');
+        throw new Error("Session not found or not active");
       }
 
       const session = sessionResult.rows[0];
@@ -177,13 +181,13 @@ export class SessionsService extends Service {
       // Check if session expired
       if (new Date(session.expires_at) < new Date()) {
         await this.expireSession(sessionId);
-        throw new Error('Session has expired');
+        throw new Error("Session has expired");
       }
 
       // Get next sequence number
       const seqResult = await this.dbClient!.query(
-        'SELECT COALESCE(MAX(sequence_number), 0) + 1 as next_seq FROM session_messages WHERE session_id = $1',
-        [sessionId]
+        "SELECT COALESCE(MAX(sequence_number), 0) + 1 as next_seq FROM session_messages WHERE session_id = $1",
+        [sessionId],
       );
       const sequenceNumber = seqResult.rows[0].next_seq;
 
@@ -199,19 +203,21 @@ export class SessionsService extends Service {
           senderType,
           JSON.stringify(content),
           sequenceNumber,
-          JSON.stringify(metadata || {})
-        ]
+          JSON.stringify(metadata || {}),
+        ],
       );
 
       // Update session activity
       await this.dbClient!.query(
-        'UPDATE sessions SET last_activity = NOW(), updated_at = NOW() WHERE id = $1',
-        [sessionId]
+        "UPDATE sessions SET last_activity = NOW(), updated_at = NOW() WHERE id = $1",
+        [sessionId],
       );
 
       const message = this.formatSessionMessage(messageResult.rows[0]);
-      
-      logger.debug(`[SESSIONS_SERVICE] Added message ${message.id} to session ${sessionId}`);
+
+      logger.debug(
+        `[SESSIONS_SERVICE] Added message ${message.id} to session ${sessionId}`,
+      );
       return message;
     } catch (error) {
       logger.error("[SESSIONS_SERVICE] Failed to send session message:", error);
@@ -225,7 +231,7 @@ export class SessionsService extends Service {
   async getSessionHistory(
     sessionId: UUID,
     limit: number = 50,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<SessionMessage[]> {
     try {
       const result = await this.dbClient!.query(
@@ -233,10 +239,10 @@ export class SessionsService extends Service {
          WHERE session_id = $1 
          ORDER BY sequence_number ASC
          LIMIT $2 OFFSET $3`,
-        [sessionId, limit, offset]
+        [sessionId, limit, offset],
       );
 
-      return result.rows.map(row => this.formatSessionMessage(row));
+      return result.rows.map((row) => this.formatSessionMessage(row));
     } catch (error) {
       logger.error("[SESSIONS_SERVICE] Failed to get session history:", error);
       throw error;
@@ -247,17 +253,17 @@ export class SessionsService extends Service {
    * Renew session
    */
   async renewSession(
-    sessionId: UUID, 
-    newTimeoutMinutes?: number
+    sessionId: UUID,
+    newTimeoutMinutes?: number,
   ): Promise<SessionInfo> {
     try {
       const result = await this.dbClient!.query(
-        'SELECT * FROM renew_session($1, $2)',
-        [sessionId, newTimeoutMinutes || null]
+        "SELECT * FROM renew_session($1, $2)",
+        [sessionId, newTimeoutMinutes || null],
       );
 
       if (result.rows.length === 0) {
-        throw new Error('Failed to renew session');
+        throw new Error("Failed to renew session");
       }
 
       const session = this.formatSessionInfo(result.rows[0]);
@@ -275,8 +281,8 @@ export class SessionsService extends Service {
   async updateHeartbeat(sessionId: UUID): Promise<boolean> {
     try {
       const result = await this.dbClient!.query(
-        'SELECT update_session_heartbeat($1) as success',
-        [sessionId]
+        "SELECT update_session_heartbeat($1) as success",
+        [sessionId],
       );
 
       return result.rows[0]?.success || false;
@@ -295,7 +301,7 @@ export class SessionsService extends Service {
         `UPDATE sessions 
          SET status = 'ended', ended_at = NOW(), updated_at = NOW()
          WHERE id = $1 AND status = 'active'`,
-        [sessionId]
+        [sessionId],
       );
 
       const success = (result.rowCount || 0) > 0;
@@ -315,8 +321,8 @@ export class SessionsService extends Service {
   async getSession(sessionId: UUID): Promise<SessionInfo | null> {
     try {
       const result = await this.dbClient!.query(
-        'SELECT * FROM sessions WHERE id = $1',
-        [sessionId]
+        "SELECT * FROM sessions WHERE id = $1",
+        [sessionId],
       );
 
       if (result.rows.length === 0) {
@@ -335,12 +341,12 @@ export class SessionsService extends Service {
    */
   async listSessions(
     userId?: UUID,
-    status?: 'active' | 'expired' | 'ended',
+    status?: "active" | "expired" | "ended",
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<SessionInfo[]> {
     try {
-      let query = 'SELECT * FROM sessions WHERE agent_id = $1';
+      let query = "SELECT * FROM sessions WHERE agent_id = $1";
       const params: any[] = [this.agentId];
       let paramIndex = 2;
 
@@ -356,11 +362,15 @@ export class SessionsService extends Service {
         paramIndex++;
       }
 
-      query += ' ORDER BY created_at DESC LIMIT $' + paramIndex + ' OFFSET $' + (paramIndex + 1);
+      query +=
+        " ORDER BY created_at DESC LIMIT $" +
+        paramIndex +
+        " OFFSET $" +
+        (paramIndex + 1);
       params.push(limit, offset);
 
       const result = await this.dbClient!.query(query, params);
-      return result.rows.map(row => this.formatSessionInfo(row));
+      return result.rows.map((row) => this.formatSessionInfo(row));
     } catch (error) {
       logger.error("[SESSIONS_SERVICE] Failed to list sessions:", error);
       return [];
@@ -377,17 +387,27 @@ export class SessionsService extends Service {
          WHERE agent_id = $1 
          AND session_date >= CURRENT_DATE - INTERVAL '${days} days'
          ORDER BY session_date DESC`,
-        [this.agentId]
+        [this.agentId],
       );
 
       return {
         dailyStats: result.rows,
         summary: {
-          totalSessions: result.rows.reduce((sum, row) => sum + row.total_sessions, 0),
-          uniqueUsers: new Set(result.rows.map(row => row.unique_users)).size,
-          avgDuration: result.rows.reduce((sum, row) => sum + (row.avg_duration_minutes || 0), 0) / result.rows.length,
-          activeSessions: result.rows.reduce((sum, row) => sum + row.active_sessions, 0)
-        }
+          totalSessions: result.rows.reduce(
+            (sum, row) => sum + row.total_sessions,
+            0,
+          ),
+          uniqueUsers: new Set(result.rows.map((row) => row.unique_users)).size,
+          avgDuration:
+            result.rows.reduce(
+              (sum, row) => sum + (row.avg_duration_minutes || 0),
+              0,
+            ) / result.rows.length,
+          activeSessions: result.rows.reduce(
+            (sum, row) => sum + row.active_sessions,
+            0,
+          ),
+        },
       };
     } catch (error) {
       logger.error("[SESSIONS_SERVICE] Failed to get analytics:", error);
@@ -403,7 +423,7 @@ export class SessionsService extends Service {
       `UPDATE sessions 
        SET status = 'expired', updated_at = NOW()
        WHERE id = $1`,
-      [sessionId]
+      [sessionId],
     );
   }
 
@@ -438,10 +458,14 @@ export class SessionsService extends Service {
       sessionId: row.session_id,
       senderId: row.sender_id,
       senderType: row.sender_type,
-      content: typeof row.content === 'string' ? JSON.parse(row.content) : row.content,
+      content:
+        typeof row.content === "string" ? JSON.parse(row.content) : row.content,
       timestamp: new Date(row.timestamp),
       sequenceNumber: row.sequence_number,
-      metadata: typeof row.metadata === 'string' ? JSON.parse(row.metadata) : (row.metadata || {}),
+      metadata:
+        typeof row.metadata === "string"
+          ? JSON.parse(row.metadata)
+          : row.metadata || {},
     };
   }
 

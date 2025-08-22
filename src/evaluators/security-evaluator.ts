@@ -44,7 +44,7 @@ export const securityEvaluator: Evaluator = {
   ): Promise<ActionResult> => {
     try {
       // Get SecurityFilter service
-      const securityFilter = runtime.getService("security-filter") as SecurityFilter;
+      const securityFilter = runtime.getService("security-filter") as unknown as SecurityFilter;
       
       if (!securityFilter) {
         logger.warn("[SECURITY_EVALUATOR] SecurityFilter service not available");

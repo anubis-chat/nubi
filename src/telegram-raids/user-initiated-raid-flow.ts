@@ -4,7 +4,7 @@ import { ChatLockManager } from "./chat-lock-manager";
 import { EngagementVerifier } from "./engagement-verifier";
 import { RaidCoordinator } from "./raid-coordinator";
 import { RaidTracker } from "./raid-tracker";
-import { logger } from "../utils/logger";
+import { logger } from "@elizaos/core";
 import * as yaml from "js-yaml";
 import * as fs from "fs";
 import * as path from "path";

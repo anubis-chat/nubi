@@ -1,5 +1,5 @@
 import { IAgentRuntime } from "@elizaos/core";
-import { logger } from "../utils/logger";
+import { logger } from "@elizaos/core";
 import { RaidTracker } from "./raid-tracker";
 
 export interface RaidTargets {
@@ -397,7 +397,7 @@ The divine legion moves as one! 🔥`;
   private async saveRaidTargets(targets: RaidTargets): Promise<void> {
     // Implementation depends on your database setup
     // For now, we'll store in memory and log
-    logger.info("Saving raid targets to database:", targets);
+    logger.info("Saving raid targets to database:", JSON.stringify(targets));
   }
 
   private async getRaidTargets(raidId: string): Promise<RaidTargets | null> {
@@ -419,11 +419,14 @@ The divine legion moves as one! 🔥`;
     lockState: ChatLockState,
   ): Promise<void> {
     // Implementation depends on your database setup
-    logger.info("Saving lock state to database:", {
-      channelId: lockState.channelId,
-      raidId: lockState.raidId,
-      isLocked: lockState.isLocked,
-    });
+    logger.info(
+      "Saving lock state to database:",
+      JSON.stringify({
+        channelId: lockState.channelId,
+        raidId: lockState.raidId,
+        isLocked: lockState.isLocked,
+      }),
+    );
   }
 
   private async loadLockStatesFromDatabase(): Promise<void> {

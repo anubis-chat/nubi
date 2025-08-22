@@ -1,9 +1,9 @@
-import { IAgentRuntime, logger } from "@elizaos/core";
+import { IAgentRuntime, logger, ModelType } from "@elizaos/core";
 import SessionsService from "../services/sessions-service";
 
 /**
  * ElizaOS Sessions API Routes
- * 
+ *
  * Full compliance with ElizaOS Sessions API specification:
  * - POST /api/sessions/create - Create new session
  * - POST /api/sessions/{id}/message - Send message to session
@@ -25,24 +25,28 @@ export const sessionsRoutes = [
         if (!sessionsService) {
           return response.status(503).json({
             success: false,
-            error: "Sessions service not available"
+            error: "Sessions service not available",
           });
         }
 
-        const { userId, timeoutMinutes, autoRenew, metadata } = request.body || {};
+        const { userId, timeoutMinutes, autoRenew, metadata } =
+          request.body || {};
 
         // Validate timeout range
-        if (timeoutMinutes !== undefined && (timeoutMinutes < 5 || timeoutMinutes > 1440)) {
+        if (
+          timeoutMinutes !== undefined &&
+          (timeoutMinutes < 5 || timeoutMinutes > 1440)
+        ) {
           return response.status(400).json({
             success: false,
-            error: "timeoutMinutes must be between 5 and 1440"
+            error: "timeoutMinutes must be between 5 and 1440",
           });
         }
 
         const session = await sessionsService.createSession(userId, {
           timeoutMinutes,
           autoRenew,
-          metadata
+          metadata,
         });
 
         logger.info(`[SESSIONS_API] Created session ${session.id}`);
@@ -59,17 +63,18 @@ export const sessionsRoutes = [
             autoRenew: session.autoRenew,
             expiresAt: session.expiresAt.toISOString(),
             createdAt: session.createdAt.toISOString(),
-            metadata: session.metadata
-          }
+            metadata: session.metadata,
+          },
         });
       } catch (error) {
         logger.error("[SESSIONS_API] Failed to create session:", error);
         response.status(500).json({
           success: false,
-          error: error instanceof Error ? error.message : "Internal server error"
+          error:
+            error instanceof Error ? error.message : "Internal server error",
         });
       }
-    }
+    },
   },
 
   {
@@ -81,7 +86,7 @@ export const sessionsRoutes = [
         if (!sessionsService) {
           return response.status(503).json({
             success: false,
-            error: "Sessions service not available"
+            error: "Sessions service not available",
           });
         }
 
@@ -91,14 +96,14 @@ export const sessionsRoutes = [
         if (!senderId || !senderType || !content) {
           return response.status(400).json({
             success: false,
-            error: "senderId, senderType, and content are required"
+            error: "senderId, senderType, and content are required",
           });
         }
 
-        if (!['user', 'agent'].includes(senderType)) {
+        if (!["user", "agent"].includes(senderType)) {
           return response.status(400).json({
             success: false,
-            error: "senderType must be 'user' or 'agent'"
+            error: "senderType must be 'user' or 'agent'",
           });
         }
 
@@ -107,12 +112,14 @@ export const sessionsRoutes = [
           senderId,
           senderType,
           content,
-          metadata
+          metadata,
         );
 
         // If this is a user message to the agent, generate response
         let agentResponse = null;
-        if (senderType === 'user') {
+        if (senderType === "user") {
+          const startTime = Date.now();
+
           try {
             // Create memory object for agent processing
             const memory = {
@@ -122,32 +129,165 @@ export const sessionsRoutes = [
               entityId: senderId,
               roomId: sessionId,
               content: content,
-              createdAt: Date.now(), // Use timestamp instead of Date object
+              createdAt: Date.now(),
               type: "message",
               metadata: metadata || {},
-              unique: true
+              unique: true,
             };
+
+            // Get enhanced context from database service
+            const databaseService = runtime.getService("database_memory");
+            let enhancedContext = null;
+            if (
+              databaseService &&
+              typeof (databaseService as any).getEnhancedContext === "function"
+            ) {
+              try {
+                enhancedContext = await (
+                  databaseService as any
+                ).getEnhancedContext(
+                  sessionId,
+                  senderId,
+                  content.text?.substring(0, 100), // topic hint
+                  10,
+                );
+              } catch (contextError) {
+                logger.debug(
+                  "[SESSIONS_API] Enhanced context unavailable:",
+                  contextError,
+                );
+              }
+            }
 
             // Use composeState for context-aware response
             const state = await runtime.composeState(memory);
 
-            // Generate response using runtime's message generation
-            const responseContent = await (runtime as any).messageManager?.createMemory({
-              ...memory,
-              agentId: runtime.agentId
-            });
+            // Add enhanced context to state if available
+            if (enhancedContext) {
+              (state as any).nubiContext = {
+                memoryInsights: enhancedContext.memoryInsights,
+                userRecords: enhancedContext.userRecords,
+                emotionalState: enhancedContext.emotionalState,
+                relationships: enhancedContext.relationships,
+                communityContext: enhancedContext.communityContext,
+              };
+            }
 
-            if (responseContent) {
+            // Get dynamic model parameters from state
+            let modelParams = {
+              runtime,
+              context: content.text || "",
+              modelClass: "MEDIUM" as const,
+              stop: [],
+              max_response_length: 400,
+              temperature: 0.8,
+              top_p: 0.9,
+            };
+
+            // Apply dynamic parameters if available in state
+            if ((state as any).dynamicTemperature !== undefined) {
+              modelParams.temperature = (state as any).dynamicTemperature;
+              modelParams.top_p = (state as any).dynamicTopP || 0.9;
+              modelParams.modelClass = (state as any).modelClass || "MEDIUM";
+              modelParams.max_response_length = (state as any).maxTokens || 400;
+            }
+
+            // Generate response using ElizaOS native generateText
+            try {
+              const generationStart = Date.now();
+              const responseText = await runtime.useModel(
+                ModelType.TEXT_LARGE,
+                {
+                  text: state.text || "",
+                  temperature: modelParams.temperature,
+                  stop: [],
+                  max_tokens: modelParams.max_response_length,
+                },
+              );
+              const generationTime = Date.now() - generationStart;
+
+              // Track analytics
+              const analyticsService = runtime.getService(
+                "messaging_analytics",
+              );
+              if (
+                analyticsService &&
+                typeof (analyticsService as any).trackResponseGeneration ===
+                  "function"
+              ) {
+                (analyticsService as any).trackResponseGeneration({
+                  generationTime,
+                  modelClass: modelParams.modelClass,
+                  temperature: modelParams.temperature,
+                  contextUsed: !!enhancedContext,
+                  userRecords: enhancedContext?.userRecords?.length || 0,
+                  semanticMemories:
+                    enhancedContext?.semanticMemories?.length || 0,
+                  emotionalState:
+                    enhancedContext?.emotionalState?.current_state,
+                  responseLength: responseText?.length || 0,
+                  success: !!responseText,
+                });
+              }
+
+              if (responseText) {
+                agentResponse = await sessionsService.sendSessionMessage(
+                  sessionId,
+                  runtime.agentId,
+                  "agent",
+                  { text: responseText },
+                  {
+                    generatedAt: new Date().toISOString(),
+                    contextUsed: !!enhancedContext,
+                    userRecords: enhancedContext?.userRecords?.length || 0,
+                    generationTime,
+                    modelParams: {
+                      temperature: modelParams.temperature,
+                      modelClass: modelParams.modelClass,
+                      maxTokens: modelParams.max_response_length,
+                    },
+                  },
+                );
+              } else {
+                // Fallback: Use simple acknowledgment if generation fails
+                agentResponse = await sessionsService.sendSessionMessage(
+                  sessionId,
+                  runtime.agentId,
+                  "agent",
+                  { text: "I hear you. Let me process that..." },
+                  {
+                    generatedAt: new Date().toISOString(),
+                    fallback: true,
+                    reason: "no_response_generated",
+                  },
+                );
+              }
+            } catch (generateError) {
+              logger.error(
+                "[SESSIONS_API] Text generation failed:",
+                generateError,
+              );
+
+              // Fallback with more personality
               agentResponse = await sessionsService.sendSessionMessage(
                 sessionId,
                 runtime.agentId,
-                'agent',
-                responseContent,
-                { generatedAt: new Date().toISOString() }
+                "agent",
+                {
+                  text: "Something's got my circuits tangled... give me a moment to refocus.",
+                },
+                {
+                  generatedAt: new Date().toISOString(),
+                  fallback: true,
+                  error: generateError.message,
+                },
               );
             }
           } catch (responseError) {
-            logger.error("[SESSIONS_API] Failed to generate agent response:", responseError);
+            logger.error(
+              "[SESSIONS_API] Failed to generate agent response:",
+              responseError,
+            );
             // Continue without agent response
           }
         }
@@ -162,43 +302,48 @@ export const sessionsRoutes = [
             content: message.content,
             timestamp: message.timestamp.toISOString(),
             sequenceNumber: message.sequenceNumber,
-            metadata: message.metadata
+            metadata: message.metadata,
           },
-          agentResponse: agentResponse ? {
-            id: agentResponse.id,
-            sessionId: agentResponse.sessionId,
-            senderId: agentResponse.senderId,
-            senderType: agentResponse.senderType,
-            content: agentResponse.content,
-            timestamp: agentResponse.timestamp.toISOString(),
-            sequenceNumber: agentResponse.sequenceNumber,
-            metadata: agentResponse.metadata
-          } : null
+          agentResponse: agentResponse
+            ? {
+                id: agentResponse.id,
+                sessionId: agentResponse.sessionId,
+                senderId: agentResponse.senderId,
+                senderType: agentResponse.senderType,
+                content: agentResponse.content,
+                timestamp: agentResponse.timestamp.toISOString(),
+                sequenceNumber: agentResponse.sequenceNumber,
+                metadata: agentResponse.metadata,
+              }
+            : null,
         });
-
       } catch (error) {
         logger.error("[SESSIONS_API] Failed to send message:", error);
-        
-        if (error instanceof Error && error.message.includes('expired')) {
+
+        if (error instanceof Error && error.message.includes("expired")) {
           response.status(410).json({
             success: false,
             error: "Session has expired",
-            code: "SESSION_EXPIRED"
+            code: "SESSION_EXPIRED",
           });
-        } else if (error instanceof Error && error.message.includes('not found')) {
+        } else if (
+          error instanceof Error &&
+          error.message.includes("not found")
+        ) {
           response.status(404).json({
             success: false,
             error: "Session not found",
-            code: "SESSION_NOT_FOUND"
+            code: "SESSION_NOT_FOUND",
           });
         } else {
           response.status(500).json({
             success: false,
-            error: error instanceof Error ? error.message : "Internal server error"
+            error:
+              error instanceof Error ? error.message : "Internal server error",
           });
         }
       }
-    }
+    },
   },
 
   {
@@ -210,7 +355,7 @@ export const sessionsRoutes = [
         if (!sessionsService) {
           return response.status(503).json({
             success: false,
-            error: "Sessions service not available"
+            error: "Sessions service not available",
           });
         }
 
@@ -221,39 +366,43 @@ export const sessionsRoutes = [
         if (limit > 100) {
           return response.status(400).json({
             success: false,
-            error: "limit cannot exceed 100"
+            error: "limit cannot exceed 100",
           });
         }
 
-        const messages = await sessionsService.getSessionHistory(sessionId, limit, offset);
+        const messages = await sessionsService.getSessionHistory(
+          sessionId,
+          limit,
+          offset,
+        );
 
         response.json({
           success: true,
           sessionId,
-          messages: messages.map(msg => ({
+          messages: messages.map((msg) => ({
             id: msg.id,
             senderId: msg.senderId,
             senderType: msg.senderType,
             content: msg.content,
             timestamp: msg.timestamp.toISOString(),
             sequenceNumber: msg.sequenceNumber,
-            metadata: msg.metadata
+            metadata: msg.metadata,
           })),
           pagination: {
             limit,
             offset,
-            hasMore: messages.length === limit
-          }
+            hasMore: messages.length === limit,
+          },
         });
-
       } catch (error) {
         logger.error("[SESSIONS_API] Failed to get history:", error);
         response.status(500).json({
           success: false,
-          error: error instanceof Error ? error.message : "Internal server error"
+          error:
+            error instanceof Error ? error.message : "Internal server error",
         });
       }
-    }
+    },
   },
 
   {
@@ -265,21 +414,27 @@ export const sessionsRoutes = [
         if (!sessionsService) {
           return response.status(503).json({
             success: false,
-            error: "Sessions service not available"
+            error: "Sessions service not available",
           });
         }
 
         const { sessionId } = request.params;
         const { timeoutMinutes } = request.body || {};
 
-        if (timeoutMinutes !== undefined && (timeoutMinutes < 5 || timeoutMinutes > 1440)) {
+        if (
+          timeoutMinutes !== undefined &&
+          (timeoutMinutes < 5 || timeoutMinutes > 1440)
+        ) {
           return response.status(400).json({
             success: false,
-            error: "timeoutMinutes must be between 5 and 1440"
+            error: "timeoutMinutes must be between 5 and 1440",
           });
         }
 
-        const session = await sessionsService.renewSession(sessionId, timeoutMinutes);
+        const session = await sessionsService.renewSession(
+          sessionId,
+          timeoutMinutes,
+        );
 
         response.json({
           success: true,
@@ -289,27 +444,27 @@ export const sessionsRoutes = [
             timeoutMinutes: session.timeoutMinutes,
             expiresAt: session.expiresAt.toISOString(),
             lastActivity: session.lastActivity.toISOString(),
-            updatedAt: session.updatedAt.toISOString()
-          }
+            updatedAt: session.updatedAt.toISOString(),
+          },
         });
-
       } catch (error) {
         logger.error("[SESSIONS_API] Failed to renew session:", error);
-        
-        if (error instanceof Error && error.message.includes('not found')) {
+
+        if (error instanceof Error && error.message.includes("not found")) {
           response.status(404).json({
             success: false,
             error: "Session not found or not active",
-            code: "SESSION_NOT_FOUND"
+            code: "SESSION_NOT_FOUND",
           });
         } else {
           response.status(500).json({
             success: false,
-            error: error instanceof Error ? error.message : "Internal server error"
+            error:
+              error instanceof Error ? error.message : "Internal server error",
           });
         }
       }
-    }
+    },
   },
 
   {
@@ -321,7 +476,7 @@ export const sessionsRoutes = [
         if (!sessionsService) {
           return response.status(503).json({
             success: false,
-            error: "Sessions service not available"
+            error: "Sessions service not available",
           });
         }
 
@@ -331,24 +486,24 @@ export const sessionsRoutes = [
         if (success) {
           response.json({
             success: true,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         } else {
           response.status(404).json({
             success: false,
             error: "Session not found or not active",
-            code: "SESSION_NOT_FOUND"
+            code: "SESSION_NOT_FOUND",
           });
         }
-
       } catch (error) {
         logger.error("[SESSIONS_API] Failed to update heartbeat:", error);
         response.status(500).json({
           success: false,
-          error: error instanceof Error ? error.message : "Internal server error"
+          error:
+            error instanceof Error ? error.message : "Internal server error",
         });
       }
-    }
+    },
   },
 
   {
@@ -360,7 +515,7 @@ export const sessionsRoutes = [
         if (!sessionsService) {
           return response.status(503).json({
             success: false,
-            error: "Sessions service not available"
+            error: "Sessions service not available",
           });
         }
 
@@ -370,24 +525,24 @@ export const sessionsRoutes = [
         if (success) {
           response.json({
             success: true,
-            message: "Session ended successfully"
+            message: "Session ended successfully",
           });
         } else {
           response.status(404).json({
             success: false,
             error: "Session not found or already ended",
-            code: "SESSION_NOT_FOUND"
+            code: "SESSION_NOT_FOUND",
           });
         }
-
       } catch (error) {
         logger.error("[SESSIONS_API] Failed to end session:", error);
         response.status(500).json({
           success: false,
-          error: error instanceof Error ? error.message : "Internal server error"
+          error:
+            error instanceof Error ? error.message : "Internal server error",
         });
       }
-    }
+    },
   },
 
   {
@@ -399,7 +554,7 @@ export const sessionsRoutes = [
         if (!sessionsService) {
           return response.status(503).json({
             success: false,
-            error: "Sessions service not available"
+            error: "Sessions service not available",
           });
         }
 
@@ -408,18 +563,23 @@ export const sessionsRoutes = [
         const limit = Math.min(parseInt(request.query?.limit) || 20, 100);
         const offset = parseInt(request.query?.offset) || 0;
 
-        if (status && !['active', 'expired', 'ended'].includes(status)) {
+        if (status && !["active", "expired", "ended"].includes(status)) {
           return response.status(400).json({
             success: false,
-            error: "status must be 'active', 'expired', or 'ended'"
+            error: "status must be 'active', 'expired', or 'ended'",
           });
         }
 
-        const sessions = await sessionsService.listSessions(userId, status, limit, offset);
+        const sessions = await sessionsService.listSessions(
+          userId,
+          status,
+          limit,
+          offset,
+        );
 
         response.json({
           success: true,
-          sessions: sessions.map(session => ({
+          sessions: sessions.map((session) => ({
             id: session.id,
             agentId: session.agentId,
             userId: session.userId,
@@ -430,23 +590,23 @@ export const sessionsRoutes = [
             expiresAt: session.expiresAt.toISOString(),
             lastActivity: session.lastActivity.toISOString(),
             createdAt: session.createdAt.toISOString(),
-            metadata: session.metadata
+            metadata: session.metadata,
           })),
           pagination: {
             limit,
             offset,
-            hasMore: sessions.length === limit
-          }
+            hasMore: sessions.length === limit,
+          },
         });
-
       } catch (error) {
         logger.error("[SESSIONS_API] Failed to list sessions:", error);
         response.status(500).json({
           success: false,
-          error: error instanceof Error ? error.message : "Internal server error"
+          error:
+            error instanceof Error ? error.message : "Internal server error",
         });
       }
-    }
+    },
   },
 
   {
@@ -458,7 +618,7 @@ export const sessionsRoutes = [
         if (!sessionsService) {
           return response.status(503).json({
             success: false,
-            error: "Sessions service not available"
+            error: "Sessions service not available",
           });
         }
 
@@ -479,20 +639,22 @@ export const sessionsRoutes = [
               activeSessions: stat.active_sessions,
               expiredSessions: stat.expired_sessions,
               endedSessions: stat.ended_sessions,
-              avgMessagesPerSession: Math.round(stat.avg_messages_per_session || 0)
-            }))
-          }
+              avgMessagesPerSession: Math.round(
+                stat.avg_messages_per_session || 0,
+              ),
+            })),
+          },
         });
-
       } catch (error) {
         logger.error("[SESSIONS_API] Failed to get analytics:", error);
         response.status(500).json({
           success: false,
-          error: error instanceof Error ? error.message : "Internal server error"
+          error:
+            error instanceof Error ? error.message : "Internal server error",
         });
       }
-    }
-  }
+    },
+  },
 ];
 
 export default sessionsRoutes;

@@ -1,6 +1,6 @@
 import { Database } from "sqlite3";
 import { TweetResult } from "../x-integration/x-posting-service";
-import { logger } from "../utils/logger";
+import { logger } from "@elizaos/core";
 import * as path from "path";
 import * as fs from "fs";
 
@@ -49,7 +49,7 @@ export class RaidTracker {
 
       this.db = new Database(this.dbPath, (err) => {
         if (err) {
-          logger.error("Failed to open database:", err);
+          logger.error("Failed to open database:", err.message);
           reject(err);
           return;
         }
@@ -342,7 +342,7 @@ export class RaidTracker {
     return new Promise((resolve, reject) => {
       this.db.run(query, params, function (err) {
         if (err) {
-          logger.error("Database query failed:", err);
+          logger.error("Database query failed:", err.message);
           reject(err);
         } else {
           resolve(this);
@@ -355,7 +355,7 @@ export class RaidTracker {
     return new Promise((resolve, reject) => {
       this.db.get(query, params, (err, row) => {
         if (err) {
-          logger.error("Database query failed:", err);
+          logger.error("Database query failed:", err.message);
           reject(err);
         } else {
           resolve(row);
@@ -368,7 +368,7 @@ export class RaidTracker {
     return new Promise((resolve, reject) => {
       this.db.all(query, params, (err, rows) => {
         if (err) {
-          logger.error("Database query failed:", err);
+          logger.error("Database query failed:", err.message);
           reject(err);
         } else {
           resolve(rows);
@@ -437,7 +437,7 @@ export class RaidTracker {
       );
       return true;
     } catch (error) {
-      logger.error("Failed to join raid:", error);
+      logger.error("Failed to join raid:", error.message);
       return false;
     }
   }
@@ -487,7 +487,7 @@ export class RaidTracker {
         `Recorded action ${action} for user ${userId} in raid ${raidId}: ${points * multiplier} points`,
       );
     } catch (error) {
-      logger.error("Failed to record action:", error);
+      logger.error("Failed to record action:", error.message);
     }
   }
 
@@ -528,7 +528,7 @@ export class RaidTracker {
         );
       }
     } catch (error) {
-      logger.error("Failed to update leaderboard:", error);
+      logger.error("Failed to update leaderboard:", error.message);
     }
   }
 
@@ -682,7 +682,7 @@ export class RaidTracker {
     return new Promise((resolve) => {
       this.db.close((err) => {
         if (err) {
-          logger.error("Error closing database:", err);
+          logger.error("Error closing database:", err.message);
         } else {
           logger.info("Database closed successfully");
         }

@@ -10,33 +10,88 @@ import { Client } from "pg";
 
 /**
  * Cross-Platform Identity Service
- * 
+ *
  * PostgreSQL-based service that integrates with the identity-linker Edge Function
  * to manage cross-platform user identity resolution and linking.
  */
 export class CrossPlatformIdentityService extends Service {
   static serviceType = "cross-platform-identity" as const;
-  capabilityDescription = "Advanced cross-platform user identity management with automatic and manual linking";
+  capabilityDescription =
+    "Advanced cross-platform user identity management with automatic and manual linking";
 
   private dbClient: Client | null = null;
   private identityLinkerUrl: string;
   private agentId: UUID;
   private linkingCommands = new Map<string, LinkCommand>();
+  private serviceRoleKey: string;
 
   constructor(runtime: IAgentRuntime) {
     super();
     this.runtime = runtime;
     this.agentId = runtime.agentId;
-    
+
+    // Validate required environment variables
+    this.serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    if (!this.serviceRoleKey) {
+      logger.warn(
+        "[IDENTITY_SERVICE] SUPABASE_SERVICE_ROLE_KEY not set - identity linking will be disabled",
+      );
+    }
+
     // Set identity linker URL
-    this.identityLinkerUrl = process.env.IDENTITY_LINKER_URL || 
+    this.identityLinkerUrl =
+      process.env.IDENTITY_LINKER_URL ||
       "https://nfnmoqepgjyutcbbaqjg.supabase.co/functions/v1/identity-linker";
-    
+
     // Register linking commands
     this.registerCommands();
   }
 
-  static async start(runtime: IAgentRuntime): Promise<CrossPlatformIdentityService> {
+  /**
+   * Make API call to identity linker with timeout and retry logic
+   */
+  private async makeAPICall(
+    body: any,
+    maxRetries: number = 2,
+  ): Promise<Response> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+        const response = await fetch(this.identityLinkerUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.serviceRoleKey}`,
+          },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+        return response;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+
+        if (attempt < maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, attempt), 5000); // Exponential backoff, max 5s
+          logger.debug(
+            `[IDENTITY_SERVICE] API call failed, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries + 1})`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    throw lastError;
+  }
+
+  static async start(
+    runtime: IAgentRuntime,
+  ): Promise<CrossPlatformIdentityService> {
     const service = new CrossPlatformIdentityService(runtime);
     await service.initialize();
     return service;
@@ -52,9 +107,10 @@ export class CrossPlatformIdentityService extends Service {
   private async initialize(): Promise<void> {
     try {
       // Setup PostgreSQL connection
-      const databaseUrl = process.env.DATABASE_URL || 
+      const databaseUrl =
+        process.env.DATABASE_URL ||
         "postgresql://postgres:Anubisdata1!@db.nfnmoqepgjyutcbbaqjg.supabase.co:5432/postgres";
-      
+
       this.dbClient = new Client({
         connectionString: databaseUrl,
       });
@@ -78,7 +134,8 @@ export class CrossPlatformIdentityService extends Service {
         const [_, platform, identifier] = match;
         return await this.handleLinkCommand(message, platform, identifier);
       },
-      description: "Link your account to another platform: /link discord username",
+      description:
+        "Link your account to another platform: /link discord username",
     });
 
     // /unlink command
@@ -116,7 +173,7 @@ export class CrossPlatformIdentityService extends Service {
    */
   async processMessage(message: Memory): Promise<string | null> {
     const text = message.content?.text || "";
-    
+
     // Check for commands
     for (const [name, command] of this.linkingCommands) {
       const match = text.match(command.pattern);
@@ -127,7 +184,7 @@ export class CrossPlatformIdentityService extends Service {
 
     // Auto-detect and analyze identity
     await this.analyzeMessageIdentity(message);
-    
+
     return null;
   }
 
@@ -137,7 +194,7 @@ export class CrossPlatformIdentityService extends Service {
   private async handleLinkCommand(
     message: Memory,
     targetPlatform: string,
-    targetIdentifier: string
+    targetIdentifier: string,
   ): Promise<string> {
     try {
       const platform = this.detectPlatform(message);
@@ -145,23 +202,16 @@ export class CrossPlatformIdentityService extends Service {
       const username = this.extractUsername(message);
 
       // Call Edge Function to create link request
-      const response = await fetch(this.identityLinkerUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      const response = await this.makeAPICall({
+        action: "link",
+        platform,
+        userId,
+        targetPlatform: targetPlatform.toLowerCase(),
+        targetIdentifier: targetIdentifier.replace("@", ""),
+        data: {
+          username,
+          display_name: this.extractDisplayName(message),
         },
-        body: JSON.stringify({
-          action: "link",
-          platform,
-          userId,
-          targetPlatform: targetPlatform.toLowerCase(),
-          targetIdentifier: targetIdentifier.replace("@", ""),
-          data: {
-            username,
-            display_name: this.extractDisplayName(message),
-          },
-        }),
       });
 
       if (!response.ok) {
@@ -169,21 +219,23 @@ export class CrossPlatformIdentityService extends Service {
         return `❌ Failed to link account: ${(error as any).error || "Unknown error"}`;
       }
 
-      const result = await response.json() as any;
-      
+      const result = (await response.json()) as any;
+
       // Store verification code for user
       await this.storeVerificationCode(
         userId,
         targetPlatform,
         result.verificationCode,
-        result.linkRequestId
+        result.linkRequestId,
       );
 
-      return `🔗 To link your ${targetPlatform} account:\n\n` +
-             `1. Go to ${targetPlatform}\n` +
-             `2. Send this verification code: **${result.verificationCode}**\n` +
-             `3. Your accounts will be linked automatically!\n\n` +
-             `⏱️ Code expires in 15 minutes`;
+      return (
+        `🔗 To link your ${targetPlatform} account:\n\n` +
+        `1. Go to ${targetPlatform}\n` +
+        `2. Send this verification code: **${result.verificationCode}**\n` +
+        `3. Your accounts will be linked automatically!\n\n` +
+        `⏱️ Code expires in 15 minutes`
+      );
     } catch (error) {
       logger.error("[IDENTITY_SERVICE] Link command failed:", error);
       return `❌ Failed to create link request. Please try again later.`;
@@ -195,7 +247,7 @@ export class CrossPlatformIdentityService extends Service {
    */
   private async handleUnlinkCommand(
     message: Memory,
-    targetPlatform: string
+    targetPlatform: string,
   ): Promise<string> {
     try {
       const platform = this.detectPlatform(message);
@@ -206,7 +258,7 @@ export class CrossPlatformIdentityService extends Service {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
         },
         body: JSON.stringify({
           action: "unlink",
@@ -241,7 +293,7 @@ export class CrossPlatformIdentityService extends Service {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
         },
         body: JSON.stringify({
           action: "resolve",
@@ -254,15 +306,17 @@ export class CrossPlatformIdentityService extends Service {
         return `❌ Failed to fetch linked accounts`;
       }
 
-      const result = await response.json() as any;
-      
+      const result = (await response.json()) as any;
+
       if (!result.profiles || result.profiles.length === 0) {
-        return `📱 You don't have any linked accounts yet.\n\n` +
-               `Use \`/link [platform] [username]\` to link accounts!`;
+        return (
+          `📱 You don't have any linked accounts yet.\n\n` +
+          `Use \`/link [platform] [username]\` to link accounts!`
+        );
       }
 
       let response_text = `📱 **Your Linked Accounts**\n\n`;
-      
+
       for (const profile of result.profiles) {
         const emoji = this.getPlatformEmoji(profile.platform);
         response_text += `${emoji} **${profile.platform}**: @${profile.username || profile.platform_user_id}\n`;
@@ -291,22 +345,15 @@ export class CrossPlatformIdentityService extends Service {
       // Skip if no valid identity
       if (!userId) return;
 
-      // Call Edge Function to analyze
-      fetch(this.identityLinkerUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      // Call Edge Function to analyze (background, no await)
+      this.makeAPICall({
+        action: "analyze",
+        platform,
+        userId,
+        data: {
+          username,
+          display_name: this.extractDisplayName(message),
         },
-        body: JSON.stringify({
-          action: "analyze",
-          platform,
-          userId,
-          data: {
-            username,
-            display_name: this.extractDisplayName(message),
-          },
-        }),
       }).catch((error) => {
         logger.debug("[IDENTITY_SERVICE] Background analysis failed:", error);
       });
@@ -325,7 +372,7 @@ export class CrossPlatformIdentityService extends Service {
     try {
       const text = message.content?.text || "";
       const codeMatch = text.match(/^([A-Z0-9]{6})$/);
-      
+
       if (!codeMatch) return false;
 
       const code = codeMatch[1];
@@ -333,27 +380,20 @@ export class CrossPlatformIdentityService extends Service {
       const userId = this.extractUserId(message);
 
       // Call Edge Function to verify
-      const response = await fetch(this.identityLinkerUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      const response = await this.makeAPICall({
+        action: "verify",
+        platform,
+        userId,
+        verificationCode: code,
+        data: {
+          username: this.extractUsername(message),
+          display_name: this.extractDisplayName(message),
         },
-        body: JSON.stringify({
-          action: "verify",
-          platform,
-          userId,
-          verificationCode: code,
-          data: {
-            username: this.extractUsername(message),
-            display_name: this.extractDisplayName(message),
-          },
-        }),
       });
 
       if (response.ok) {
-        const result = await response.json() as any;
-        
+        const result = (await response.json()) as any;
+
         // Send success message
         await (this.runtime as any).messageManager?.createMemory({
           id: this.runtime.agentId,
@@ -364,13 +404,13 @@ export class CrossPlatformIdentityService extends Service {
           },
           createdAt: Date.now(),
         });
-        
+
         return true;
       }
     } catch (error) {
       logger.debug("[IDENTITY_SERVICE] Verification check failed:", error);
     }
-    
+
     return false;
   }
 
@@ -381,7 +421,7 @@ export class CrossPlatformIdentityService extends Service {
     userId: string,
     platform: string,
     code: string,
-    requestId: string
+    requestId: string,
   ): Promise<void> {
     try {
       await this.dbClient!.query(
@@ -394,24 +434,30 @@ export class CrossPlatformIdentityService extends Service {
           `verification_${userId}_${platform}`,
           this.agentId,
           JSON.stringify({ code, requestId, expires: Date.now() + 900000 }),
-        ]
+        ],
       );
     } catch (error) {
-      logger.error("[IDENTITY_SERVICE] Failed to store verification code:", error);
+      logger.error(
+        "[IDENTITY_SERVICE] Failed to store verification code:",
+        error,
+      );
     }
   }
 
   /**
    * Update message count for a user
    */
-  private async updateMessageCount(platform: string, userId: string): Promise<void> {
+  private async updateMessageCount(
+    platform: string,
+    userId: string,
+  ): Promise<void> {
     try {
       await this.dbClient!.query(
         `UPDATE platform_profiles 
          SET message_count = message_count + 1,
              last_seen = NOW()
          WHERE platform = $1 AND platform_user_id = $2`,
-        [platform, userId]
+        [platform, userId],
       );
     } catch (error) {
       // Ignore errors - this is not critical
@@ -421,69 +467,69 @@ export class CrossPlatformIdentityService extends Service {
   /**
    * Utility methods for extracting identity from messages
    */
-  private detectPlatform(message: Memory): string {
+  public detectPlatform(message: Memory): string {
     const source = message.content?.source?.toLowerCase() || "";
-    
+
     if (source.includes("telegram")) return "telegram";
     if (source.includes("discord")) return "discord";
     if (source.includes("twitter") || source.includes("x.com")) return "x";
-    
+
     // Check content structure
     const content = message.content as any;
     if (content.from?.id && content.chat) return "telegram";
     if (content.guildId || content.channelId) return "discord";
     if (content.author?.username && content.tweet_id) return "x";
-    
+
     return "unknown";
   }
 
-  private extractUserId(message: Memory): string {
+  public extractUserId(message: Memory): string {
     const content = message.content as any;
-    
+
     // Telegram
     if (content.from?.id) return content.from.id.toString();
-    
+
     // Discord
     if (content.author?.id) return content.author.id;
-    
+
     // Twitter/X
     if (content.authorId) return content.authorId;
-    
+
     // Fallback to entityId
     return message.entityId || "";
   }
 
   private extractUsername(message: Memory): string | undefined {
     const content = message.content as any;
-    
+
     // Telegram
     if (content.from?.username) return content.from.username;
-    
+
     // Discord
     if (content.author?.username) return content.author.username;
-    
+
     // Twitter/X
     if (content.author?.username) return content.author.username;
     if (content.screenName) return content.screenName;
-    
+
     return undefined;
   }
 
   private extractDisplayName(message: Memory): string | undefined {
     const content = message.content as any;
-    
+
     // Telegram
     if (content.from) {
       return `${content.from.first_name || ""} ${content.from.last_name || ""}`.trim();
     }
-    
+
     // Discord
     if (content.member?.nickname) return content.member.nickname;
     if (content.author?.username) return content.author.username;
-    
+
     // Twitter/X
     if (content.author?.name) return content.author.name;
-    
+
     return undefined;
   }
 
@@ -503,7 +549,7 @@ export class CrossPlatformIdentityService extends Service {
    */
   async getCrossPlatformContext(
     platform: string,
-    userId: string
+    userId: string,
   ): Promise<CrossPlatformContext> {
     try {
       // Call Edge Function to resolve identity
@@ -511,7 +557,7 @@ export class CrossPlatformIdentityService extends Service {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
         },
         body: JSON.stringify({
           action: "resolve",
@@ -529,8 +575,8 @@ export class CrossPlatformIdentityService extends Service {
         };
       }
 
-      const result = await response.json() as any;
-      
+      const result = (await response.json()) as any;
+
       return {
         primaryPlatform: platform,
         primaryUserId: userId,
@@ -539,7 +585,10 @@ export class CrossPlatformIdentityService extends Service {
         identity: result.identity,
       };
     } catch (error) {
-      logger.error("[IDENTITY_SERVICE] Failed to get cross-platform context:", error);
+      logger.error(
+        "[IDENTITY_SERVICE] Failed to get cross-platform context:",
+        error,
+      );
       return {
         primaryPlatform: platform,
         primaryUserId: userId,

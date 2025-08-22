@@ -42,7 +42,7 @@ export const emotionalStateProvider: Provider = {
       // Get current emotional state from service
       const emotionalService = runtime.getService("emotional_state");
       let emotionalState;
-      
+
       if (emotionalService) {
         emotionalState = await (emotionalService as any).getEmotionalState();
       } else {
@@ -53,11 +53,14 @@ export const emotionalStateProvider: Provider = {
       const newState = analyzeEmotionalTriggers(text, emotionalState);
 
       // Update through service if available
-      if (emotionalService && newState.emotional.current !== emotionalState.current) {
+      if (
+        emotionalService &&
+        newState.emotional.current !== emotionalState.current
+      ) {
         await (emotionalService as any).triggerEmotionalState(
           newState.emotional.current,
           newState.emotional.intensity,
-          text.substring(0, 50)
+          text.substring(0, 50),
         );
       } else {
         // Fallback to direct update

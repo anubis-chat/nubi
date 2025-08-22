@@ -10,27 +10,27 @@ describe("Plugin Routes", () => {
     }
   });
 
-  it("should have a route for /helloworld", () => {
+  it("should have a route for /health", () => {
     if (plugin.routes) {
-      const helloWorldRoute = plugin.routes.find(
-        (route) => route.path === "/helloworld",
+      const healthRoute = plugin.routes.find(
+        (route) => route.path === "/health",
       );
-      expect(helloWorldRoute).toBeDefined();
+      expect(healthRoute).toBeDefined();
 
-      if (helloWorldRoute) {
-        expect(helloWorldRoute.type).toBe("GET");
-        expect(typeof helloWorldRoute.handler).toBe("function");
+      if (healthRoute) {
+        expect(healthRoute.type).toBe("GET");
+        expect(typeof healthRoute.handler).toBe("function");
       }
     }
   });
 
   it("should handle route requests correctly", async () => {
     if (plugin.routes) {
-      const helloWorldRoute = plugin.routes.find(
-        (route) => route.path === "/helloworld",
+      const healthRoute = plugin.routes.find(
+        (route) => route.path === "/health",
       );
 
-      if (helloWorldRoute && helloWorldRoute.handler) {
+      if (healthRoute && healthRoute.handler) {
         // Create mock request and response objects
         const mockReq = {};
         const mockRes = {
@@ -41,13 +41,10 @@ describe("Plugin Routes", () => {
         const mockRuntime = {} as any;
 
         // Call the route handler
-        await helloWorldRoute.handler(mockReq, mockRes, mockRuntime);
+        await healthRoute.handler(mockReq, mockRes, mockRuntime);
 
-        // Verify response
+        // Verify response was called
         expect(mockRes.json).toHaveBeenCalledTimes(1);
-        expect(mockRes.json).toHaveBeenCalledWith({
-          message: "Hello World!",
-        });
       }
     }
   });

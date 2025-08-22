@@ -1,14 +1,8 @@
-import {
-  Service,
-  IAgentRuntime,
-  Memory,
-  logger,
-  UUID,
-} from "@elizaos/core";
+import { Service, IAgentRuntime, Memory, logger, UUID } from "@elizaos/core";
 
 /**
  * Socket.IO Real-time Events Service for NUBI
- * 
+ *
  * Implements ElizaOS Socket.IO integration with custom events:
  * - nubiRaidUpdate - Real-time raid coordination
  * - communityLeaderboard - Live leaderboard updates
@@ -48,21 +42,62 @@ export class SocketIOEventsService extends Service {
 
   private async initialize(): Promise<void> {
     try {
-      // Get Socket.IO server from ElizaOS runtime
-      this.socketServer = (this.runtime as any).socketServer || (this.runtime as any).io;
-      
+      // Safely attempt to get Socket.IO server from ElizaOS runtime
+      this.socketServer = this.detectSocketServer();
+
       if (!this.socketServer) {
-        logger.warn("[SOCKET_EVENTS] Socket.IO server not available");
+        logger.warn(
+          "[SOCKET_EVENTS] Socket.IO server not available - will queue events",
+        );
+        logger.debug(
+          "[SOCKET_EVENTS] Checked runtime.socketServer, runtime.io, runtime.server?.io",
+        );
         return;
       }
 
       // Set up NUBI-specific event listeners
       this.setupEventListeners();
-      
+
       logger.info("[SOCKET_EVENTS] Socket.IO events service initialized");
     } catch (error) {
       logger.error("[SOCKET_EVENTS] Failed to initialize:", error);
     }
+  }
+
+  /**
+   * Safely detect Socket.IO server from runtime
+   */
+  private detectSocketServer(): any {
+    const runtime = this.runtime as any;
+
+    // Try multiple possible locations for Socket.IO server
+    if (
+      runtime.socketServer &&
+      typeof runtime.socketServer.emit === "function"
+    ) {
+      logger.debug("[SOCKET_EVENTS] Found Socket.IO at runtime.socketServer");
+      return runtime.socketServer;
+    }
+
+    if (runtime.io && typeof runtime.io.emit === "function") {
+      logger.debug("[SOCKET_EVENTS] Found Socket.IO at runtime.io");
+      return runtime.io;
+    }
+
+    if (runtime.server?.io && typeof runtime.server.io.emit === "function") {
+      logger.debug("[SOCKET_EVENTS] Found Socket.IO at runtime.server.io");
+      return runtime.server.io;
+    }
+
+    if (
+      runtime.httpServer?.io &&
+      typeof runtime.httpServer.io.emit === "function"
+    ) {
+      logger.debug("[SOCKET_EVENTS] Found Socket.IO at runtime.httpServer.io");
+      return runtime.httpServer.io;
+    }
+
+    return null;
   }
 
   /**
@@ -71,40 +106,44 @@ export class SocketIOEventsService extends Service {
   private setupEventListeners(): void {
     if (!this.socketServer) return;
 
-    this.socketServer.on('connection', (socket: any) => {
+    this.socketServer.on("connection", (socket: any) => {
       logger.debug(`[SOCKET_EVENTS] Client connected: ${socket.id}`);
 
       // Handle room joining for targeted broadcasts
-      socket.on('joinRoom', (data: { roomId: string; userId?: string }) => {
+      socket.on("joinRoom", (data: { roomId: string; userId?: string }) => {
         socket.join(data.roomId);
-        this.addSubscriber('roomActivity', socket.id);
-        logger.debug(`[SOCKET_EVENTS] Client ${socket.id} joined room ${data.roomId}`);
+        this.addSubscriber("roomActivity", socket.id);
+        logger.debug(
+          `[SOCKET_EVENTS] Client ${socket.id} joined room ${data.roomId}`,
+        );
       });
 
       // Handle specific NUBI event subscriptions
-      socket.on('subscribeToNubiEvents', (events: string[]) => {
+      socket.on("subscribeToNubiEvents", (events: string[]) => {
         for (const event of events) {
           if (this.isValidNubiEvent(event)) {
             this.addSubscriber(event, socket.id);
-            logger.debug(`[SOCKET_EVENTS] Client ${socket.id} subscribed to ${event}`);
+            logger.debug(
+              `[SOCKET_EVENTS] Client ${socket.id} subscribed to ${event}`,
+            );
           }
         }
       });
 
       // Handle personality tracking subscription
-      socket.on('trackPersonality', (agentId: string) => {
-        this.addSubscriber('personalityEvolution', socket.id);
+      socket.on("trackPersonality", (agentId: string) => {
+        this.addSubscriber("personalityEvolution", socket.id);
         socket.personalityTracking = agentId;
       });
 
       // Handle community leaderboard subscription
-      socket.on('trackLeaderboard', (roomId?: string) => {
-        this.addSubscriber('communityLeaderboard', socket.id);
+      socket.on("trackLeaderboard", (roomId?: string) => {
+        this.addSubscriber("communityLeaderboard", socket.id);
         socket.leaderboardRoom = roomId;
       });
 
       // Clean up on disconnect
-      socket.on('disconnect', () => {
+      socket.on("disconnect", () => {
         this.removeSubscriber(socket.id);
         logger.debug(`[SOCKET_EVENTS] Client disconnected: ${socket.id}`);
       });
@@ -117,7 +156,7 @@ export class SocketIOEventsService extends Service {
   async emitRaidUpdate(data: {
     raidId: string;
     roomId: UUID;
-    action: 'start' | 'update' | 'complete';
+    action: "start" | "update" | "complete";
     participants: number;
     score?: number;
     leaderboard?: Array<{ userId: string; score: number }>;
@@ -131,12 +170,12 @@ export class SocketIOEventsService extends Service {
         action: data.action,
         participants: data.participants,
         score: data.score,
-        leaderboard: data.leaderboard
+        leaderboard: data.leaderboard,
       },
-      metadata: { eventType: 'raid' }
+      metadata: { eventType: "raid" },
     };
 
-    await this.emitToRoom('nubiRaidUpdate', data.roomId, eventData);
+    await this.emitToRoom("nubiRaidUpdate", data.roomId, eventData);
     logger.debug(`[SOCKET_EVENTS] Emitted raid update for ${data.raidId}`);
   }
 
@@ -152,7 +191,7 @@ export class SocketIOEventsService extends Service {
       rank: number;
       change: number;
     }>;
-    period: 'daily' | 'weekly' | 'monthly';
+    period: "daily" | "weekly" | "monthly";
   }): Promise<void> {
     const eventData: SocketEventData = {
       agentId: this.runtime.agentId,
@@ -161,13 +200,15 @@ export class SocketIOEventsService extends Service {
       data: {
         leaderboard: data.leaderboard,
         period: data.period,
-        totalParticipants: data.leaderboard.length
+        totalParticipants: data.leaderboard.length,
       },
-      metadata: { eventType: 'leaderboard' }
+      metadata: { eventType: "leaderboard" },
     };
 
-    await this.emitToRoom('communityLeaderboard', data.roomId, eventData);
-    logger.debug(`[SOCKET_EVENTS] Emitted leaderboard update for room ${data.roomId}`);
+    await this.emitToRoom("communityLeaderboard", data.roomId, eventData);
+    logger.debug(
+      `[SOCKET_EVENTS] Emitted leaderboard update for room ${data.roomId}`,
+    );
   }
 
   /**
@@ -187,13 +228,15 @@ export class SocketIOEventsService extends Service {
         changes: data.changes,
         trigger: data.trigger,
         intensity: data.intensity,
-        evolution: this.analyzePersonalityChange(data.changes)
+        evolution: this.analyzePersonalityChange(data.changes),
       },
-      metadata: { eventType: 'personality' }
+      metadata: { eventType: "personality" },
     };
 
-    await this.emitToSubscribers('personalityEvolution', eventData);
-    logger.debug(`[SOCKET_EVENTS] Emitted personality evolution: ${data.trigger}`);
+    await this.emitToSubscribers("personalityEvolution", eventData);
+    logger.debug(
+      `[SOCKET_EVENTS] Emitted personality evolution: ${data.trigger}`,
+    );
   }
 
   /**
@@ -203,7 +246,7 @@ export class SocketIOEventsService extends Service {
     sessionId: UUID;
     roomId: UUID;
     userId: UUID;
-    action: 'created' | 'message' | 'renewed' | 'expired' | 'ended';
+    action: "created" | "message" | "renewed" | "expired" | "ended";
     messageCount?: number;
     expiresAt?: Date;
   }): Promise<void> {
@@ -216,13 +259,15 @@ export class SocketIOEventsService extends Service {
         sessionId: data.sessionId,
         action: data.action,
         messageCount: data.messageCount,
-        expiresAt: data.expiresAt?.toISOString()
+        expiresAt: data.expiresAt?.toISOString(),
       },
-      metadata: { eventType: 'session' }
+      metadata: { eventType: "session" },
     };
 
-    await this.emitToRoom('sessionActivity', data.roomId, eventData);
-    logger.debug(`[SOCKET_EVENTS] Emitted session activity: ${data.action} for ${data.sessionId}`);
+    await this.emitToRoom("sessionActivity", data.roomId, eventData);
+    logger.debug(
+      `[SOCKET_EVENTS] Emitted session activity: ${data.action} for ${data.sessionId}`,
+    );
   }
 
   /**
@@ -232,7 +277,11 @@ export class SocketIOEventsService extends Service {
     roomId: UUID;
     patterns: Array<{ type: string; count: number; significance: number }>;
     relationships: Array<{ userId: string; strength: number; type: string }>;
-    trends: Array<{ metric: string; direction: 'up' | 'down' | 'stable'; change: number }>;
+    trends: Array<{
+      metric: string;
+      direction: "up" | "down" | "stable";
+      change: number;
+    }>;
   }): Promise<void> {
     const eventData: SocketEventData = {
       agentId: this.runtime.agentId,
@@ -242,13 +291,15 @@ export class SocketIOEventsService extends Service {
         patterns: data.patterns,
         relationships: data.relationships,
         trends: data.trends,
-        summary: this.generateInsightsSummary(data)
+        summary: this.generateInsightsSummary(data),
       },
-      metadata: { eventType: 'memory' }
+      metadata: { eventType: "memory" },
     };
 
-    await this.emitToRoom('memoryInsights', data.roomId, eventData);
-    logger.debug(`[SOCKET_EVENTS] Emitted memory insights for room ${data.roomId}`);
+    await this.emitToRoom("memoryInsights", data.roomId, eventData);
+    logger.debug(
+      `[SOCKET_EVENTS] Emitted memory insights for room ${data.roomId}`,
+    );
   }
 
   /**
@@ -273,24 +324,33 @@ export class SocketIOEventsService extends Service {
         intensity: data.intensity,
         triggers: data.triggers,
         duration: data.duration,
-        emotional_context: this.getEmotionalContext(data.currentEmotion, data.intensity)
+        emotional_context: this.getEmotionalContext(
+          data.currentEmotion,
+          data.intensity,
+        ),
       },
-      metadata: { eventType: 'emotion' }
+      metadata: { eventType: "emotion" },
     };
 
     if (data.roomId) {
-      await this.emitToRoom('emotionalStateChange', data.roomId, eventData);
+      await this.emitToRoom("emotionalStateChange", data.roomId, eventData);
     } else {
-      await this.emitToSubscribers('emotionalStateChange', eventData);
+      await this.emitToSubscribers("emotionalStateChange", eventData);
     }
-    
-    logger.debug(`[SOCKET_EVENTS] Emitted emotional state change: ${data.previousEmotion} → ${data.currentEmotion}`);
+
+    logger.debug(
+      `[SOCKET_EVENTS] Emitted emotional state change: ${data.previousEmotion} → ${data.currentEmotion}`,
+    );
   }
 
   /**
    * Generic method to emit to room
    */
-  private async emitToRoom(event: string, roomId: UUID, data: SocketEventData): Promise<void> {
+  private async emitToRoom(
+    event: string,
+    roomId: UUID,
+    data: SocketEventData,
+  ): Promise<void> {
     if (!this.socketServer) {
       this.queueEvent(event, data);
       return;
@@ -302,7 +362,10 @@ export class SocketIOEventsService extends Service {
   /**
    * Generic method to emit to event subscribers
    */
-  private async emitToSubscribers(event: string, data: SocketEventData): Promise<void> {
+  private async emitToSubscribers(
+    event: string,
+    data: SocketEventData,
+  ): Promise<void> {
     if (!this.socketServer) {
       this.queueEvent(event, data);
       return;
@@ -326,7 +389,7 @@ export class SocketIOEventsService extends Service {
    */
   private queueEvent(event: string, data: SocketEventData): void {
     this.eventQueue.push({ event, data });
-    
+
     // Keep queue size manageable
     if (this.eventQueue.length > 100) {
       this.eventQueue.shift();
@@ -341,12 +404,14 @@ export class SocketIOEventsService extends Service {
       return;
     }
 
-    logger.info(`[SOCKET_EVENTS] Processing ${this.eventQueue.length} queued events`);
-    
+    logger.info(
+      `[SOCKET_EVENTS] Processing ${this.eventQueue.length} queued events`,
+    );
+
     for (const { event, data } of this.eventQueue) {
       await this.emitToSubscribers(event, data);
     }
-    
+
     this.eventQueue = [];
   }
 
@@ -355,12 +420,14 @@ export class SocketIOEventsService extends Service {
    */
   private isValidNubiEvent(event: string): boolean {
     const validEvents = [
-      'nubiRaidUpdate',
-      'communityLeaderboard',
-      'personalityEvolution',
-      'sessionActivity',
-      'memoryInsights',
-      'emotionalStateChange'
+      "nubiRaidUpdate",
+      "communityLeaderboard",
+      "personalityEvolution",
+      "sessionActivity",
+      "memoryInsights",
+      "emotionalStateChange",
+      "ritualUpdate",
+      "recordCreated",
     ];
     return validEvents.includes(event);
   }
@@ -383,21 +450,27 @@ export class SocketIOEventsService extends Service {
 
   private analyzePersonalityChange(changes: Record<string, number>): {
     dominant: string;
-    direction: 'positive' | 'negative' | 'mixed';
-    magnitude: 'small' | 'medium' | 'large';
+    direction: "positive" | "negative" | "mixed";
+    magnitude: "small" | "medium" | "large";
   } {
     const entries = Object.entries(changes);
     const maxChange = Math.max(...entries.map(([_, v]) => Math.abs(v)));
-    const dominant = entries.find(([_, v]) => Math.abs(v) === maxChange)?.[0] || 'unknown';
-    
+    const dominant =
+      entries.find(([_, v]) => Math.abs(v) === maxChange)?.[0] || "unknown";
+
     const positiveChanges = entries.filter(([_, v]) => v > 0).length;
     const negativeChanges = entries.filter(([_, v]) => v < 0).length;
-    
+
     return {
       dominant,
-      direction: positiveChanges > negativeChanges ? 'positive' : 
-                negativeChanges > positiveChanges ? 'negative' : 'mixed',
-      magnitude: maxChange > 0.5 ? 'large' : maxChange > 0.2 ? 'medium' : 'small'
+      direction:
+        positiveChanges > negativeChanges
+          ? "positive"
+          : negativeChanges > positiveChanges
+            ? "negative"
+            : "mixed",
+      magnitude:
+        maxChange > 0.5 ? "large" : maxChange > 0.2 ? "medium" : "small",
     };
   }
 
@@ -410,37 +483,124 @@ export class SocketIOEventsService extends Service {
   } {
     return {
       totalPatterns: data.patterns.length,
-      strongestPattern: data.patterns.reduce((max: any, p: any) => 
-        p.significance > (max?.significance || 0) ? p : max, null)?.type || 'none',
+      strongestPattern:
+        data.patterns.reduce(
+          (max: any, p: any) =>
+            p.significance > (max?.significance || 0) ? p : max,
+          null,
+        )?.type || "none",
       relationshipCount: data.relationships.length,
-      trendingUp: data.trends.filter((t: any) => t.direction === 'up').length,
-      trendingDown: data.trends.filter((t: any) => t.direction === 'down').length
+      trendingUp: data.trends.filter((t: any) => t.direction === "up").length,
+      trendingDown: data.trends.filter((t: any) => t.direction === "down")
+        .length,
     };
   }
 
-  private getEmotionalContext(emotion: string, intensity: number): {
+  private getEmotionalContext(
+    emotion: string,
+    intensity: number,
+  ): {
     category: string;
-    energy: 'low' | 'medium' | 'high';
-    valence: 'positive' | 'negative' | 'neutral';
+    energy: "low" | "medium" | "high";
+    valence: "positive" | "negative" | "neutral";
   } {
-    const emotionCategories: Record<string, { energy: string; valence: string }> = {
-      happy: { energy: 'high', valence: 'positive' },
-      excited: { energy: 'high', valence: 'positive' },
-      calm: { energy: 'low', valence: 'positive' },
-      sad: { energy: 'low', valence: 'negative' },
-      angry: { energy: 'high', valence: 'negative' },
-      neutral: { energy: 'medium', valence: 'neutral' },
-      focused: { energy: 'medium', valence: 'positive' },
-      confused: { energy: 'medium', valence: 'negative' }
+    const emotionCategories: Record<
+      string,
+      { energy: string; valence: string }
+    > = {
+      happy: { energy: "high", valence: "positive" },
+      excited: { energy: "high", valence: "positive" },
+      calm: { energy: "low", valence: "positive" },
+      sad: { energy: "low", valence: "negative" },
+      angry: { energy: "high", valence: "negative" },
+      neutral: { energy: "medium", valence: "neutral" },
+      focused: { energy: "medium", valence: "positive" },
+      confused: { energy: "medium", valence: "negative" },
     };
 
-    const context = emotionCategories[emotion] || { energy: 'medium', valence: 'neutral' };
-    
+    const context = emotionCategories[emotion] || {
+      energy: "medium",
+      valence: "neutral",
+    };
+
     return {
       category: emotion,
-      energy: intensity > 70 ? 'high' : intensity > 40 ? 'medium' : 'low',
-      valence: context.valence as any
+      energy: intensity > 70 ? "high" : intensity > 40 ? "medium" : "low",
+      valence: context.valence as any,
     };
+  }
+
+  /**
+   * Emit ritual update events
+   */
+  async emitRitualUpdate(data: {
+    sessionId: UUID;
+    roomId: UUID;
+    userId: UUID;
+    ritualType: string;
+    action: "started" | "step_completed" | "completed" | "expired";
+    currentStep?: number;
+    totalSteps?: number;
+    stepData?: any;
+  }): Promise<void> {
+    const eventData: SocketEventData = {
+      agentId: this.runtime.agentId,
+      roomId: data.roomId,
+      userId: data.userId,
+      timestamp: new Date().toISOString(),
+      data: {
+        sessionId: data.sessionId,
+        ritualType: data.ritualType,
+        action: data.action,
+        currentStep: data.currentStep,
+        totalSteps: data.totalSteps,
+        progress: data.totalSteps
+          ? Math.round(((data.currentStep || 0) / data.totalSteps) * 100)
+          : 0,
+        stepData: data.stepData,
+      },
+      metadata: { eventType: "ritual" },
+    };
+
+    await this.emitToRoom("ritualUpdate", data.roomId, eventData);
+    logger.debug(
+      `[SOCKET_EVENTS] Emitted ritual update: ${data.action} for ${data.ritualType}`,
+    );
+  }
+
+  /**
+   * Emit record created events
+   */
+  async emitRecordCreated(data: {
+    userUUID: string;
+    roomId: UUID;
+    recordType: string;
+    content: string;
+    tags: string[];
+    importanceScore: number;
+    platform: string;
+  }): Promise<void> {
+    const eventData: SocketEventData = {
+      agentId: this.runtime.agentId,
+      roomId: data.roomId,
+      userId: data.userUUID as UUID,
+      timestamp: new Date().toISOString(),
+      data: {
+        recordType: data.recordType,
+        content:
+          data.content.substring(0, 100) +
+          (data.content.length > 100 ? "..." : ""),
+        tags: data.tags,
+        importanceScore: data.importanceScore,
+        platform: data.platform,
+      },
+      metadata: { eventType: "record" },
+    };
+
+    await this.emitToRoom("recordCreated", data.roomId, eventData);
+    logger.debug(
+      `[SOCKET_EVENTS] Emitted record created: ${data.recordType} for user ${data.userUUID}`,
+    );
   }
 
   /**
@@ -452,9 +612,10 @@ export class SocketIOEventsService extends Service {
     queuedEvents: number;
     eventsEmittedToday: number;
   }> {
-    const connectedClients = this.socketServer ? 
-      Object.keys(this.socketServer.sockets.sockets).length : 0;
-    
+    const connectedClients = this.socketServer
+      ? Object.keys(this.socketServer.sockets.sockets).length
+      : 0;
+
     const activeSubscriptions: Record<string, number> = {};
     for (const [event, subscribers] of this.subscribers) {
       activeSubscriptions[event] = subscribers.size;
@@ -464,7 +625,7 @@ export class SocketIOEventsService extends Service {
       connectedClients,
       activeSubscriptions,
       queuedEvents: this.eventQueue.length,
-      eventsEmittedToday: 0 // Would be tracked with actual metrics
+      eventsEmittedToday: 0, // Would be tracked with actual metrics
     };
   }
 

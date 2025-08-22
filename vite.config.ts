@@ -10,7 +10,7 @@ export default defineConfig({
   plugins: [react()],
   root: 'src/frontend',
   build: {
-    outDir: '../../dist/frontend',
+    outDir: './dist/frontend',
     emptyOutDir: true,
     rollupOptions: {
       input: {

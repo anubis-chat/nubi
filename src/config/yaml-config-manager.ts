@@ -113,7 +113,7 @@ class YAMLConfigManager {
       // Try nubi-config.yaml first (more sophisticated), fallback to anubis-config.yaml
       const nubiConfigFile = join(this.configPath, "nubi-config.yaml");
       const anubisConfigFile = join(this.configPath, "anubis-config.yaml");
-      
+
       let configFile = nubiConfigFile;
       if (!existsSync(nubiConfigFile)) {
         if (existsSync(anubisConfigFile)) {
@@ -127,7 +127,9 @@ class YAMLConfigManager {
       const fileContents = readFileSync(configFile, "utf8");
       this.config = yaml.load(fileContents) as AnubisConfig;
 
-      logger.info(`✅ YAML configuration loaded from ${configFile.split('/').pop()}`);
+      logger.info(
+        `✅ YAML configuration loaded from ${configFile.split("/").pop()}`,
+      );
     } catch (error) {
       logger.error("Failed to load YAML configuration:", error);
       this.createDefaultConfig();

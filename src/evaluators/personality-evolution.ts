@@ -163,9 +163,11 @@ export const personalityEvolutionEvaluator: Evaluator = {
       // Apply personality evolution through service
       const personalityService = runtime.getService("personality_evolution");
       if (personalityService) {
-        await (personalityService as any).applyPersonalityChanges(personalityChanges);
+        await (personalityService as any).applyPersonalityChanges(
+          personalityChanges,
+        );
       }
-      
+
       const updatedPersonality = await evolvePersonality(
         runtime,
         currentPersonality,
@@ -210,7 +212,7 @@ async function getPersonalityState(
   // Get YAML baseline personality or use hardcoded fallback
   const yamlConfig = (runtime as any).yamlConfigManager?.getConfig();
   const yamlPersonality = yamlConfig?.agent?.personality;
-  
+
   const defaultPersonality: PersonalityDimensions = {
     solanaMaximalism: yamlPersonality?.solana_maximalism || 75,
     empathy: yamlPersonality?.empathy || 65,

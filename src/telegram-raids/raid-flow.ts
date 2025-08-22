@@ -8,7 +8,7 @@ import { UserInitiatedRaidFlow } from "./user-initiated-raid-flow";
 import { RaidModerationService } from "./raid-moderation-service";
 import { ChatLockManager } from "./chat-lock-manager";
 import { EngagementVerifier } from "./engagement-verifier";
-import { logger } from "../utils/logger";
+import { logger } from "@elizaos/core";
 import * as yaml from "js-yaml";
 import * as fs from "fs";
 import * as path from "path";

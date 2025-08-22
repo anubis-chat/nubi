@@ -6,6 +6,9 @@ import {
 } from "@elizaos/core";
 import { nubiCharacter } from "./nubi-character.ts";
 import nubiPlugin from "./nubi-plugin.ts";
+
+// Official ElizaOS plugins
+import telegramPlugin from "@elizaos/plugin-telegram";
 import { ProjectStarterTestSuite } from "./__tests__/e2e/project-starter.e2e";
 
 const initCharacter = ({ runtime }: { runtime: IAgentRuntime }) => {
@@ -14,7 +17,7 @@ const initCharacter = ({ runtime }: { runtime: IAgentRuntime }) => {
     logger.info({ name: nubiCharacter.name }, "Agent Identity:");
 
     // Validate character configuration
-    if (!nubiCharacter.name || !nubiCharacter.plugins) {
+    if (!nubiCharacter.name) {
       throw new Error("Invalid character configuration");
     }
 
@@ -27,7 +30,7 @@ const initCharacter = ({ runtime }: { runtime: IAgentRuntime }) => {
         knowledgeBase: nubiCharacter.knowledge?.length || 0,
         messageExamples: nubiCharacter.messageExamples?.length || 0,
         topics: nubiCharacter.topics?.length || 0,
-        plugins: nubiCharacter.plugins?.length || 0,
+        plugins: 2, // NUBI + Telegram
         symbioticArchitecture: "enabled",
       },
       "✨ Symbiotic Essence Features:",
@@ -67,7 +70,10 @@ const initCharacter = ({ runtime }: { runtime: IAgentRuntime }) => {
 export const projectAgent: ProjectAgent = {
   character: nubiCharacter,
   init: async (runtime: IAgentRuntime) => await initCharacter({ runtime }),
-  plugins: [nubiPlugin], // Enhanced NUBI plugin with all features
+  plugins: [
+    telegramPlugin, // Official Telegram plugin (base functionality)
+    nubiPlugin, // Enhanced NUBI plugin with raids integration
+  ],
   tests: [ProjectStarterTestSuite],
 };
 

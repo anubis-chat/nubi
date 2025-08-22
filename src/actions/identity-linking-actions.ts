@@ -27,10 +27,15 @@ export const linkAccountAction: Action = {
   ],
   validate: async (runtime: IAgentRuntime, message: Memory) => {
     const text = message.content?.text?.toLowerCase() || "";
-    
+
     return (
-      text.includes("link") && 
-      (text.includes("account") || text.includes("profile") || text.includes("discord") || text.includes("telegram") || text.includes("twitter") || text.includes("x.com"))
+      text.includes("link") &&
+      (text.includes("account") ||
+        text.includes("profile") ||
+        text.includes("discord") ||
+        text.includes("telegram") ||
+        text.includes("twitter") ||
+        text.includes("x.com"))
     );
   },
   handler: async (
@@ -38,11 +43,13 @@ export const linkAccountAction: Action = {
     message: Memory,
     state: State,
     options: any,
-    callback?: HandlerCallback
+    callback?: HandlerCallback,
   ): Promise<ActionResult> => {
     try {
-      const identityService = runtime.getService("cross-platform-identity") as CrossPlatformIdentityService;
-      
+      const identityService = runtime.getService(
+        "cross-platform-identity",
+      ) as CrossPlatformIdentityService;
+
       if (!identityService) {
         await callback?.({
           text: "❌ Identity linking service not available",
@@ -51,7 +58,7 @@ export const linkAccountAction: Action = {
       }
 
       const result = await identityService.processMessage(message);
-      
+
       if (result) {
         await callback?.({
           text: result,
@@ -61,24 +68,25 @@ export const linkAccountAction: Action = {
 
       // If no specific result, provide help
       await callback?.({
-        text: `🔗 **Account Linking Help**\n\n` +
-              `Available commands:\n` +
-              `• \`/link discord username\` - Link Discord account\n` +
-              `• \`/link telegram @username\` - Link Telegram account\n` +
-              `• \`/link x username\` - Link X/Twitter account\n` +
-              `• \`/myaccounts\` - View linked accounts\n` +
-              `• \`/unlink platform\` - Unlink an account\n\n` +
-              `Or use natural language: "Link my Discord account @myusername"`,
+        text:
+          `🔗 **Account Linking Help**\n\n` +
+          `Available commands:\n` +
+          `• \`/link discord username\` - Link Discord account\n` +
+          `• \`/link telegram @username\` - Link Telegram account\n` +
+          `• \`/link x username\` - Link X/Twitter account\n` +
+          `• \`/myaccounts\` - View linked accounts\n` +
+          `• \`/unlink platform\` - Unlink an account\n\n` +
+          `Or use natural language: "Link my Discord account @myusername"`,
       });
 
       return { success: true };
     } catch (error) {
       logger.error("[LINK_ACCOUNT] Action failed:", error);
-      
+
       await callback?.({
         text: "❌ Failed to process linking request. Please try again later.",
       });
-      
+
       return { success: false };
     }
   },
@@ -131,7 +139,7 @@ export const unlinkAccountAction: Action = {
   description: "Unlink user accounts from cross-platform identity",
   similes: [
     "unlink my account",
-    "disconnect my profile", 
+    "disconnect my profile",
     "unlink discord",
     "remove telegram",
     "disconnect twitter",
@@ -140,13 +148,17 @@ export const unlinkAccountAction: Action = {
   ],
   validate: async (runtime: IAgentRuntime, message: Memory) => {
     const text = message.content?.text?.toLowerCase() || "";
-    
+
     return (
-      text.includes("unlink") || text.includes("disconnect") || text.includes("remove")
-    ) && (
-      text.includes("account") || text.includes("profile") || 
-      text.includes("discord") || text.includes("telegram") || 
-      text.includes("twitter") || text.includes("x.com")
+      (text.includes("unlink") ||
+        text.includes("disconnect") ||
+        text.includes("remove")) &&
+      (text.includes("account") ||
+        text.includes("profile") ||
+        text.includes("discord") ||
+        text.includes("telegram") ||
+        text.includes("twitter") ||
+        text.includes("x.com"))
     );
   },
   handler: async (
@@ -154,11 +166,13 @@ export const unlinkAccountAction: Action = {
     message: Memory,
     state: State,
     options: any,
-    callback?: HandlerCallback
+    callback?: HandlerCallback,
   ): Promise<ActionResult> => {
     try {
-      const identityService = runtime.getService("cross-platform-identity") as CrossPlatformIdentityService;
-      
+      const identityService = runtime.getService(
+        "cross-platform-identity",
+      ) as CrossPlatformIdentityService;
+
       if (!identityService) {
         await callback?.({
           text: "❌ Identity service not available",
@@ -167,28 +181,29 @@ export const unlinkAccountAction: Action = {
       }
 
       const result = await identityService.processMessage(message);
-      
+
       if (result) {
         await callback?.({
           text: result,
         });
       } else {
         await callback?.({
-          text: `🔓 **Account Unlinking**\n\n` +
-                `Use: \`/unlink [platform]\`\n\n` +
-                `Available platforms: discord, telegram, x\n\n` +
-                `Example: \`/unlink discord\``,
+          text:
+            `🔓 **Account Unlinking**\n\n` +
+            `Use: \`/unlink [platform]\`\n\n` +
+            `Available platforms: discord, telegram, x\n\n` +
+            `Example: \`/unlink discord\``,
         });
       }
 
       return { success: true };
     } catch (error) {
       logger.error("[UNLINK_ACCOUNT] Action failed:", error);
-      
+
       await callback?.({
         text: "❌ Failed to process unlinking request. Please try again later.",
       });
-      
+
       return { success: false };
     }
   },
@@ -225,9 +240,10 @@ export const showLinkedAccountsAction: Action = {
   ],
   validate: async (runtime: IAgentRuntime, message: Memory) => {
     const text = message.content?.text?.toLowerCase() || "";
-    
+
     return (
-      (text.includes("my") && (text.includes("account") || text.includes("profile"))) ||
+      (text.includes("my") &&
+        (text.includes("account") || text.includes("profile"))) ||
       text.includes("linked account") ||
       text.includes("connected account") ||
       text.includes("/myaccounts")
@@ -238,11 +254,13 @@ export const showLinkedAccountsAction: Action = {
     message: Memory,
     state: State,
     options: any,
-    callback?: HandlerCallback
+    callback?: HandlerCallback,
   ): Promise<ActionResult> => {
     try {
-      const identityService = runtime.getService("cross-platform-identity") as CrossPlatformIdentityService;
-      
+      const identityService = runtime.getService(
+        "cross-platform-identity",
+      ) as CrossPlatformIdentityService;
+
       if (!identityService) {
         await callback?.({
           text: "❌ Identity service not available",
@@ -251,7 +269,7 @@ export const showLinkedAccountsAction: Action = {
       }
 
       const result = await identityService.processMessage(message);
-      
+
       await callback?.({
         text: result || "📱 No linked accounts found",
       });
@@ -259,11 +277,11 @@ export const showLinkedAccountsAction: Action = {
       return { success: true };
     } catch (error) {
       logger.error("[SHOW_LINKED_ACCOUNTS] Action failed:", error);
-      
+
       await callback?.({
         text: "❌ Failed to fetch linked accounts. Please try again later.",
       });
-      
+
       return { success: false };
     }
   },
@@ -293,7 +311,7 @@ export const verificationCodeAction: Action = {
   similes: [],
   validate: async (runtime: IAgentRuntime, message: Memory) => {
     const text = message.content?.text?.trim() || "";
-    
+
     // Check if it's a 6-character alphanumeric code
     return /^[A-Z0-9]{6}$/.test(text);
   },
@@ -302,17 +320,19 @@ export const verificationCodeAction: Action = {
     message: Memory,
     state: State,
     options: any,
-    callback?: HandlerCallback
+    callback?: HandlerCallback,
   ): Promise<ActionResult> => {
     try {
-      const identityService = runtime.getService("cross-platform-identity") as CrossPlatformIdentityService;
-      
+      const identityService = runtime.getService(
+        "cross-platform-identity",
+      ) as CrossPlatformIdentityService;
+
       if (!identityService) {
         return { success: false };
       }
 
       const verified = await identityService.checkVerificationCode(message);
-      
+
       if (verified) {
         // Success message will be sent by the service
         return { success: true };
@@ -338,8 +358,10 @@ export const identityContextProvider = {
 
   get: async (runtime: IAgentRuntime, message: Memory, state: State) => {
     try {
-      const identityService = runtime.getService("cross-platform-identity") as CrossPlatformIdentityService;
-      
+      const identityService = runtime.getService(
+        "cross-platform-identity",
+      ) as CrossPlatformIdentityService;
+
       if (!identityService) {
         return {
           text: "",
@@ -348,10 +370,10 @@ export const identityContextProvider = {
         };
       }
 
-      // Extract platform and user ID
-      const platform = identityService['detectPlatform'](message);
-      const userId = identityService['extractUserId'](message);
-      
+      // Extract platform and user ID using public methods
+      const platform = identityService.detectPlatform(message);
+      const userId = identityService.extractUserId(message);
+
       if (!userId) {
         return {
           text: "",
@@ -361,11 +383,15 @@ export const identityContextProvider = {
       }
 
       // Get cross-platform context
-      const context = await identityService.getCrossPlatformContext(platform, userId);
-      
-      const contextText = context.linkedProfiles.length > 0
-        ? `User has ${context.linkedProfiles.length} linked accounts across platforms (${context.confidence}% confidence)`
-        : "New user with no linked accounts";
+      const context = await identityService.getCrossPlatformContext(
+        platform,
+        userId,
+      );
+
+      const contextText =
+        context.linkedProfiles.length > 0
+          ? `User has ${context.linkedProfiles.length} linked accounts across platforms (${context.confidence}% confidence)`
+          : "New user with no linked accounts";
 
       return {
         text: contextText,
@@ -398,6 +424,4 @@ export const identityActions = [
   verificationCodeAction,
 ];
 
-export const identityProviders = [
-  identityContextProvider,
-];
+export const identityProviders = [identityContextProvider];

@@ -1,22 +1,17 @@
-import {
-  Service,
-  IAgentRuntime,
-  logger,
-  ServiceType,
-} from "@elizaos/core";
+import { Service, IAgentRuntime, logger, ServiceType } from "@elizaos/core";
 
 /**
  * Emotional State Service
- * 
+ *
  * Background service that manages emotional state persistence and decay.
  * Implements proper ElizaOS Service pattern.
- * 
+ *
  * Original: Extracted from nubi-service.ts startEmotionalTracking()
  */
 
-export type EmotionalStateType = 
+export type EmotionalStateType =
   | "neutral"
-  | "excited" 
+  | "excited"
   | "frustrated"
   | "curious"
   | "confident"
@@ -51,12 +46,17 @@ export class EmotionalStateService extends Service {
   }
 
   private async initialize(): Promise<void> {
-    logger.info("[EMOTIONAL_STATE_SERVICE] Starting emotional state management");
-    
+    logger.info(
+      "[EMOTIONAL_STATE_SERVICE] Starting emotional state management",
+    );
+
     // Check for emotional decay every 5 minutes
-    this.decayInterval = setInterval(async () => {
-      await this.processEmotionalDecay();
-    }, 5 * 60 * 1000); // Every 5 minutes
+    this.decayInterval = setInterval(
+      async () => {
+        await this.processEmotionalDecay();
+      },
+      5 * 60 * 1000,
+    ); // Every 5 minutes
 
     // Initialize with neutral state if needed
     await this.ensureEmotionalState();
@@ -69,15 +69,22 @@ export class EmotionalStateService extends Service {
     try {
       const currentState = await this.getEmotionalState();
       const decayedState = this.applyEmotionalDecay(currentState);
-      
+
       // Only update if state changed
-      if (decayedState.current !== currentState.current || 
-          Math.abs(decayedState.intensity - currentState.intensity) > 1) {
+      if (
+        decayedState.current !== currentState.current ||
+        Math.abs(decayedState.intensity - currentState.intensity) > 1
+      ) {
         await this.updateEmotionalState(decayedState);
-        logger.debug(`[EMOTIONAL_STATE_SERVICE] Applied decay: ${decayedState.current} (${decayedState.intensity}%)`);
+        logger.debug(
+          `[EMOTIONAL_STATE_SERVICE] Applied decay: ${decayedState.current} (${decayedState.intensity}%)`,
+        );
       }
     } catch (error) {
-      logger.warn("[EMOTIONAL_STATE_SERVICE] Failed to process emotional decay:", error);
+      logger.warn(
+        "[EMOTIONAL_STATE_SERVICE] Failed to process emotional decay:",
+        error,
+      );
     }
   }
 
@@ -133,7 +140,10 @@ export class EmotionalStateService extends Service {
         this.runtime.character.settings.emotionalState = state;
       }
     } catch (error) {
-      logger.warn("[EMOTIONAL_STATE_SERVICE] Could not persist emotional state:", error);
+      logger.warn(
+        "[EMOTIONAL_STATE_SERVICE] Could not persist emotional state:",
+        error,
+      );
     }
   }
 
@@ -152,11 +162,13 @@ export class EmotionalStateService extends Service {
 
     try {
       const stored = this.runtime.character?.settings?.emotionalState;
-      if (stored && typeof stored === 'object') {
+      if (stored && typeof stored === "object") {
         return { ...defaultState, ...stored };
       }
     } catch (error) {
-      logger.warn("[EMOTIONAL_STATE_SERVICE] Could not load emotional state, using default");
+      logger.warn(
+        "[EMOTIONAL_STATE_SERVICE] Could not load emotional state, using default",
+      );
     }
 
     return defaultState;
@@ -174,12 +186,12 @@ export class EmotionalStateService extends Service {
    * Trigger emotional state change (called externally)
    */
   async triggerEmotionalState(
-    emotion: EmotionalStateType, 
-    intensity: number, 
-    trigger: string
+    emotion: EmotionalStateType,
+    intensity: number,
+    trigger: string,
   ): Promise<void> {
     const currentState = await this.getEmotionalState();
-    
+
     // Higher intensity for multiple matches or if already in similar state
     let finalIntensity = Math.max(60, intensity);
     if (currentState.current === emotion) {
@@ -196,8 +208,10 @@ export class EmotionalStateService extends Service {
     };
 
     await this.updateEmotionalState(newState);
-    
-    logger.debug(`[EMOTIONAL_STATE_SERVICE] Triggered ${emotion} with intensity ${finalIntensity}% from: ${trigger.substring(0, 30)}`);
+
+    logger.debug(
+      `[EMOTIONAL_STATE_SERVICE] Triggered ${emotion} with intensity ${finalIntensity}% from: ${trigger.substring(0, 30)}`,
+    );
   }
 
   /**
@@ -220,7 +234,7 @@ export class EmotionalStateService extends Service {
 
   async stop(): Promise<void> {
     logger.info("[EMOTIONAL_STATE_SERVICE] Stopping emotional state service");
-    
+
     if (this.decayInterval) {
       clearInterval(this.decayInterval);
       this.decayInterval = null;
@@ -229,9 +243,9 @@ export class EmotionalStateService extends Service {
 }
 
 // Extend ServiceTypeRegistry for proper typing
-declare module '@elizaos/core' {
+declare module "@elizaos/core" {
   interface ServiceTypeRegistry {
-    emotional_state: 'emotional_state';
+    emotional_state: "emotional_state";
   }
 }
 

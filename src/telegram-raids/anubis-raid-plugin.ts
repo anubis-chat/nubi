@@ -1,6 +1,6 @@
 import { Plugin, IAgentRuntime, Service } from "@elizaos/core";
 import { AnubisRaidFlow } from "./raid-flow";
-import { logger } from "../utils/logger";
+import { logger } from "@elizaos/core";
 
 export class AnubisRaidService extends Service {
   static serviceType = "anubis-raid";

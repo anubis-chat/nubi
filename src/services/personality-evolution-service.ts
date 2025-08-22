@@ -1,16 +1,11 @@
-import {
-  Service,
-  IAgentRuntime,
-  logger,
-  ServiceType,
-} from "@elizaos/core";
+import { Service, IAgentRuntime, logger, ServiceType } from "@elizaos/core";
 
 /**
  * Personality Evolution Service
- * 
+ *
  * Background service that applies natural personality drift over time.
  * Implements proper ElizaOS Service pattern.
- * 
+ *
  * Original: Extracted from nubi-service.ts startPersonalityEvolution()
  */
 
@@ -37,19 +32,26 @@ export class PersonalityEvolutionService extends Service {
     this.runtime = runtime;
   }
 
-  static async start(runtime: IAgentRuntime): Promise<PersonalityEvolutionService> {
+  static async start(
+    runtime: IAgentRuntime,
+  ): Promise<PersonalityEvolutionService> {
     const service = new PersonalityEvolutionService(runtime);
     await service.initialize();
     return service;
   }
 
   private async initialize(): Promise<void> {
-    logger.info("[PERSONALITY_EVOLUTION_SERVICE] Starting personality evolution background task");
-    
+    logger.info(
+      "[PERSONALITY_EVOLUTION_SERVICE] Starting personality evolution background task",
+    );
+
     // Start personality drift every hour
-    this.evolutionInterval = setInterval(async () => {
-      await this.applyNaturalDrift();
-    }, 60 * 60 * 1000); // Every hour
+    this.evolutionInterval = setInterval(
+      async () => {
+        await this.applyNaturalDrift();
+      },
+      60 * 60 * 1000,
+    ); // Every hour
 
     // Also run once on startup
     await this.applyNaturalDrift();
@@ -70,17 +72,24 @@ export class PersonalityEvolutionService extends Service {
       });
 
       await this.applyPersonalityChanges(driftChanges);
-      
-      logger.debug("[PERSONALITY_EVOLUTION_SERVICE] Applied natural personality drift");
+
+      logger.debug(
+        "[PERSONALITY_EVOLUTION_SERVICE] Applied natural personality drift",
+      );
     } catch (error) {
-      logger.warn("[PERSONALITY_EVOLUTION_SERVICE] Failed to apply personality drift:", error);
+      logger.warn(
+        "[PERSONALITY_EVOLUTION_SERVICE] Failed to apply personality drift:",
+        error,
+      );
     }
   }
 
   /**
    * Apply external personality changes (called by PersonalityEvolutionEvaluator)
    */
-  async applyPersonalityChanges(changes: Partial<PersonalityDimensions>): Promise<void> {
+  async applyPersonalityChanges(
+    changes: Partial<PersonalityDimensions>,
+  ): Promise<void> {
     try {
       const currentPersonality = await this.getPersonalityState();
       const updatedPersonality = { ...currentPersonality };
@@ -88,7 +97,8 @@ export class PersonalityEvolutionService extends Service {
       // Apply changes with clamping (0-100 range)
       for (const [trait, change] of Object.entries(changes)) {
         if (change !== undefined && trait in updatedPersonality) {
-          const currentValue = updatedPersonality[trait as keyof PersonalityDimensions];
+          const currentValue =
+            updatedPersonality[trait as keyof PersonalityDimensions];
           const newValue = Math.max(0, Math.min(100, currentValue + change));
           updatedPersonality[trait as keyof PersonalityDimensions] = newValue;
         }
@@ -98,12 +108,19 @@ export class PersonalityEvolutionService extends Service {
       await this.storePersonalityState(updatedPersonality);
 
       // Log significant changes
-      const significantChanges = Object.entries(changes).filter(([_, change]) => Math.abs(change || 0) > 0.005);
+      const significantChanges = Object.entries(changes).filter(
+        ([_, change]) => Math.abs(change || 0) > 0.005,
+      );
       if (significantChanges.length > 0) {
-        logger.info(`[PERSONALITY_EVOLUTION_SERVICE] Applied changes: ${significantChanges.map(([trait, change]) => `${trait}: ${change?.toFixed(3)}`).join(', ')}`);
+        logger.info(
+          `[PERSONALITY_EVOLUTION_SERVICE] Applied changes: ${significantChanges.map(([trait, change]) => `${trait}: ${change?.toFixed(3)}`).join(", ")}`,
+        );
       }
     } catch (error) {
-      logger.error("[PERSONALITY_EVOLUTION_SERVICE] Failed to apply personality changes:", error);
+      logger.error(
+        "[PERSONALITY_EVOLUTION_SERVICE] Failed to apply personality changes:",
+        error,
+      );
     }
   }
 
@@ -114,7 +131,7 @@ export class PersonalityEvolutionService extends Service {
     // Get YAML baseline personality or use hardcoded fallback
     const yamlConfig = (this.runtime as any).yamlConfigManager?.getConfig();
     const yamlPersonality = yamlConfig?.agent?.personality;
-    
+
     const defaultPersonality: PersonalityDimensions = {
       solanaMaximalism: yamlPersonality?.solana_maximalism || 75,
       empathy: yamlPersonality?.empathy || 65,
@@ -128,11 +145,19 @@ export class PersonalityEvolutionService extends Service {
 
     try {
       const characterSettings = this.runtime.character?.settings;
-      if (characterSettings?.personality && typeof characterSettings.personality === 'object') {
-        return { ...defaultPersonality, ...characterSettings.personality as Partial<PersonalityDimensions> };
+      if (
+        characterSettings?.personality &&
+        typeof characterSettings.personality === "object"
+      ) {
+        return {
+          ...defaultPersonality,
+          ...(characterSettings.personality as Partial<PersonalityDimensions>),
+        };
       }
     } catch (error) {
-      logger.warn("[PERSONALITY_EVOLUTION_SERVICE] Could not load personality state, using YAML defaults");
+      logger.warn(
+        "[PERSONALITY_EVOLUTION_SERVICE] Could not load personality state, using YAML defaults",
+      );
     }
 
     return defaultPersonality;
@@ -141,13 +166,18 @@ export class PersonalityEvolutionService extends Service {
   /**
    * Store personality state
    */
-  private async storePersonalityState(personality: PersonalityDimensions): Promise<void> {
+  private async storePersonalityState(
+    personality: PersonalityDimensions,
+  ): Promise<void> {
     try {
       if (this.runtime.character?.settings) {
         this.runtime.character.settings.personality = personality;
       }
     } catch (error) {
-      logger.warn("[PERSONALITY_EVOLUTION_SERVICE] Could not persist personality state:", error);
+      logger.warn(
+        "[PERSONALITY_EVOLUTION_SERVICE] Could not persist personality state:",
+        error,
+      );
     }
   }
 
@@ -159,8 +189,10 @@ export class PersonalityEvolutionService extends Service {
   }
 
   async stop(): Promise<void> {
-    logger.info("[PERSONALITY_EVOLUTION_SERVICE] Stopping personality evolution service");
-    
+    logger.info(
+      "[PERSONALITY_EVOLUTION_SERVICE] Stopping personality evolution service",
+    );
+
     if (this.evolutionInterval) {
       clearInterval(this.evolutionInterval);
       this.evolutionInterval = null;
@@ -169,9 +201,9 @@ export class PersonalityEvolutionService extends Service {
 }
 
 // Extend ServiceTypeRegistry for proper typing
-declare module '@elizaos/core' {
+declare module "@elizaos/core" {
   interface ServiceTypeRegistry {
-    personality_evolution: 'personality_evolution';
+    personality_evolution: "personality_evolution";
   }
 }
 
