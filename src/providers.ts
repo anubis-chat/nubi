@@ -6,16 +6,16 @@ import {
   type State,
   logger,
 } from "@elizaos/core";
-import { AnubisService } from "./anubis-service";
+import { NubiService } from "./nubi-service";
 
 /**
  * Unified Context Provider
  *
  * Consolidates all context providers into one comprehensive provider
- * that leverages the unified AnubisService
+ * that leverages the unified NubiService
  */
-export const anubisContextProvider: Provider = {
-  name: "ANUBIS_UNIFIED_CONTEXT",
+export const nubiContextProvider: Provider = {
+  name: "NUBI_UNIFIED_CONTEXT",
   description:
     "Comprehensive ElizaOS-integrated context provider with semantic memory, entity relationships, and dynamic personality insights",
   dynamic: true,
@@ -27,10 +27,10 @@ export const anubisContextProvider: Provider = {
     state: State,
   ): Promise<ProviderResult> => {
     try {
-      const service = runtime.getService<AnubisService>("anubis");
+      const service = runtime.getService<NubiService>("nubi");
 
       if (!service) {
-        logger.warn("AnubisService not found");
+        logger.warn("NubiService not found");
         return {
           text: "Anubis context not available",
           values: {},
@@ -462,7 +462,7 @@ export const raidStatusProvider: Provider = {
     _state: State,
   ): Promise<ProviderResult> => {
     try {
-      const service = runtime.getService<AnubisService>("anubis");
+      const service = runtime.getService<NubiService>("nubi");
 
       if (!service) {
         return {
@@ -524,6 +524,6 @@ interface ResponseStrategy {
 }
 
 // Export all providers
-export const anubisProviders = [anubisContextProvider, raidStatusProvider];
+export const nubiProviders = [nubiContextProvider, raidStatusProvider];
 
-export default anubisProviders;
+export default nubiProviders;

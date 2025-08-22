@@ -4,17 +4,17 @@ import {
   type Project,
   type ProjectAgent,
 } from "@elizaos/core";
-import { anubisCharacter } from "./anubis-character.ts";
-import anubisPlugin from "./anubis-plugin.ts";
+import { nubiCharacter } from "./nubi-character.ts";
+import nubiPlugin from "./nubi-plugin.ts";
 import { ProjectStarterTestSuite } from "./__tests__/e2e/project-starter.e2e";
 
 const initCharacter = ({ runtime }: { runtime: IAgentRuntime }) => {
   try {
-    logger.info("🚀 Initializing Anubis Agent Unified God Mode");
-    logger.info({ name: anubisCharacter.name }, "Agent Identity:");
+    logger.info("🚀 Initializing NUBI - The Symbiotic Essence of Anubis");
+    logger.info({ name: nubiCharacter.name }, "Agent Identity:");
 
     // Validate character configuration
-    if (!anubisCharacter.name || !anubisCharacter.plugins) {
+    if (!nubiCharacter.name || !nubiCharacter.plugins) {
       throw new Error("Invalid character configuration");
     }
 
@@ -24,13 +24,13 @@ const initCharacter = ({ runtime }: { runtime: IAgentRuntime }) => {
         personalityDimensions: 10,
         emotionalStates: 7,
         antiDetectionPatterns: 16,
-        knowledgeBase: anubisCharacter.knowledge?.length || 0,
-        messageExamples: anubisCharacter.messageExamples?.length || 0,
-        topics: anubisCharacter.topics?.length || 0,
-        plugins: anubisCharacter.plugins?.length || 0,
-        unifiedArchitecture: "enabled",
+        knowledgeBase: nubiCharacter.knowledge?.length || 0,
+        messageExamples: nubiCharacter.messageExamples?.length || 0,
+        topics: nubiCharacter.topics?.length || 0,
+        plugins: nubiCharacter.plugins?.length || 0,
+        symbioticArchitecture: "enabled",
       },
-      "✨ Unified God Mode Features:",
+      "✨ Symbiotic Essence Features:",
     );
 
     // Validate environment
@@ -57,7 +57,7 @@ const initCharacter = ({ runtime }: { runtime: IAgentRuntime }) => {
 
     logger.info(features, "🔧 Feature Status:");
 
-    logger.info("🎯 Anubis Agent ready for deployment");
+    logger.info("🎯 NUBI Agent ready for deployment");
   } catch (error) {
     logger.error("❌ Character initialization failed:", error);
     throw error;
@@ -65,9 +65,9 @@ const initCharacter = ({ runtime }: { runtime: IAgentRuntime }) => {
 };
 
 export const projectAgent: ProjectAgent = {
-  character: anubisCharacter,
+  character: nubiCharacter,
   init: async (runtime: IAgentRuntime) => await initCharacter({ runtime }),
-  plugins: [anubisPlugin], // Enhanced Anubis plugin with all features
+  plugins: [nubiPlugin], // Enhanced NUBI plugin with all features
   tests: [ProjectStarterTestSuite],
 };
 
@@ -75,7 +75,7 @@ const project: Project = {
   agents: [projectAgent],
 };
 
-export { anubisCharacter as character } from "./anubis-character.ts";
-export { anubisCharacter } from "./anubis-character.ts";
+export { nubiCharacter as character } from "./nubi-character.ts";
+export { nubiCharacter } from "./nubi-character.ts";
 
 export default project;

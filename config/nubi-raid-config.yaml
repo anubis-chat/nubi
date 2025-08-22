@@ -1,11 +1,11 @@
-anubis_raid_bot:
-  name: "Anubis Solana Raiders"
+nubi_raid_bot:
+  name: "NUBI - Symbiotic Solana Raiders"
   version: "1.0.0"
   
   channels:
     telegram:
-      channel_id: "@AnubisRaids"  # His own channel
-      test_channel: "@AnubisTest"  # Testing channel
+      channel_id: "@NubiRaids"  # NUBI's own channel
+      test_channel: "@NubiTest"  # Testing channel
     
   x_settings:
     post_interval: 4  # hours

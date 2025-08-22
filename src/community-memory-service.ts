@@ -275,6 +275,52 @@ export class CommunityMemoryService extends Service {
   private initializeCommunityKnowledge(): void {
     // Pre-seed with known Solana influencers and characteristics
     const knownInfluencers = [
+      // SYMLabs Co-Founders
+      {
+        handle: "dEXploarer",
+        interests: ["development", "AI", "symbiotic systems", "anubis"],
+        influence: "co_founder",
+        role: "Co-Founder of SYMLabs",
+        socials: {
+          twitter: "@dEXploarer",
+          twitter_url: "https://x.com/dEXploarer",
+          telegram: "@dexploarerdev",
+          discord: "skirrskirrr",
+        },
+      },
+      {
+        handle: "SYMBiEX",
+        interests: ["symbiotic evolution", "AI", "consciousness merger", "anubis"],
+        influence: "co_founder",
+        role: "Co-Founder of SYMLabs",
+        socials: {
+          twitter: "@SYMBiEX",
+          twitter_url: "https://x.com/SYMBiEX",
+          telegram: "@SYMBiEX",
+          discord: "cidsociety",
+        },
+      },
+      // High-Ranking Community Members & Mods
+      {
+        handle: "IrieRubz",
+        interests: ["community", "moderation", "anubis", "leadership"],
+        influence: "high_ranking_mod",
+        role: "Telegram Mod & High-Ranking Community Member",
+        socials: {
+          twitter: "@irierubz",
+          telegram: "@IrieRubz",
+        },
+      },
+      {
+        handle: "stoicmido",
+        interests: ["community", "moderation", "anubis"],
+        influence: "telegram_mod",
+        role: "Telegram Mod",
+        socials: {
+          telegram: "@stoicmido",
+        },
+      },
+      // Original Solana influencers
       {
         handle: "aeyakovenko",
         interests: ["solana", "scaling", "tech"],

@@ -124,7 +124,7 @@ export class UserInitiatedRaidFlow {
       }
 
       // Initialize all services
-      await this.linkDetector.initialize?.();
+      // LinkDetector doesn't have initialize method
       await this.chatLockManager.initialize();
       await this.engagementVerifier.initialize();
 
@@ -198,6 +198,7 @@ export class UserInitiatedRaidFlow {
           tweetId: tweetData.tweetId,
           url: tweetData.url,
           content: `User-initiated raid by @${username}`,
+          timestamp: Date.now(),
         },
         false // Not a test
       );

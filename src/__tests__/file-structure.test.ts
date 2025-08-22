@@ -33,8 +33,8 @@ describe("Project Structure Validation", () => {
   describe("Source Files", () => {
     it("should contain the required source files", () => {
       expect(fileExists(path.join(rootDir, "src", "index.ts"))).toBe(true);
-      expect(fileExists(path.join(rootDir, "src", "anubis-plugin.ts"))).toBe(true);
-      expect(fileExists(path.join(rootDir, "src", "anubis-character.ts"))).toBe(true);
+      expect(fileExists(path.join(rootDir, "src", "nubi-plugin.ts"))).toBe(true);
+      expect(fileExists(path.join(rootDir, "src", "nubi-character.ts"))).toBe(true);
     });
 
     it("should have properly structured main files", () => {
@@ -46,9 +46,9 @@ describe("Project Structure Validation", () => {
       expect(indexContent).toContain("character");
       expect(indexContent).toContain("plugin");
 
-      // Check anubis-plugin.ts contains plugin definition
+      // Check nubi-plugin.ts contains plugin definition
       const pluginContent = fs.readFileSync(
-        path.join(rootDir, "src", "anubis-plugin.ts"),
+        path.join(rootDir, "src", "nubi-plugin.ts"),
         "utf8",
       );
       expect(pluginContent).toContain("export default");

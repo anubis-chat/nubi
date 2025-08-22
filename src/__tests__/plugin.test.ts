@@ -8,9 +8,9 @@ import {
   beforeAll,
   afterAll,
 } from "bun:test";
-import plugin from "../anubis-plugin";
+import plugin from "../nubi-plugin";
 import { ModelType, logger } from "@elizaos/core";
-import { AnubisService } from "../anubis-service";
+import { NubiService } from "../nubi-service";
 import dotenv from "dotenv";
 
 // Setup environment variables
@@ -74,8 +74,8 @@ function createRealRuntime() {
 
   // Create a real service instance if needed
   const createService = (serviceType: string) => {
-    if (serviceType === AnubisService.serviceType) {
-      return new AnubisService({
+    if (serviceType === NubiService.serviceType) {
+      return new NubiService({
         character: {
           name: "Test Character",
           system: "You are a helpful assistant for testing.",
@@ -261,7 +261,7 @@ describe("Plugin Models", () => {
   });
 });
 
-describe("AnubisService", () => {
+describe("NubiService", () => {
   let testRuntime: any;
 
   beforeEach(() => {
@@ -271,7 +271,7 @@ describe("AnubisService", () => {
   afterEach(async () => {
     // Clean up any registered services after each test
     try {
-      await AnubisService.stop(testRuntime);
+      await NubiService.stop(testRuntime);
     } catch (e) {
       // Service might not be registered, ignore error
     }
@@ -283,10 +283,10 @@ describe("AnubisService", () => {
 
     try {
       logger.info("Using OpenAI for TEXT_SMALL model");
-      startResult = await AnubisService.start(testRuntime as any);
+      startResult = await NubiService.start(testRuntime as any);
 
       expect(startResult).toBeDefined();
-      expect(startResult.constructor.name).toBe("AnubisService");
+      expect(startResult.constructor.name).toBe("NubiService");
 
       // Test real functionality - check stop method is available
       expect(typeof startResult.stop).toBe("function");
@@ -296,7 +296,7 @@ describe("AnubisService", () => {
     }
 
     documentTestResult(
-      "AnubisService start",
+      "NubiService start",
       {
         success: !!startResult,
         serviceType: startResult?.constructor.name,
@@ -307,14 +307,14 @@ describe("AnubisService", () => {
 
   it("should throw an error on startup if the service is already registered", async () => {
     // First registration should succeed
-    const result1 = await AnubisService.start(testRuntime as any);
+    const result1 = await NubiService.start(testRuntime as any);
     expect(result1).toBeTruthy();
 
     let startupError: Error | null = null;
 
     try {
       // Second registration should fail
-      await AnubisService.start(testRuntime as any);
+      await NubiService.start(testRuntime as any);
       expect(true).toBe(false); // Should not reach here
     } catch (e) {
       startupError = e as Error;
@@ -322,7 +322,7 @@ describe("AnubisService", () => {
     }
 
     documentTestResult(
-      "AnubisService double start",
+      "NubiService double start",
       {
         errorThrown: !!startupError,
         errorMessage: startupError?.message || "No error message",
@@ -337,14 +337,14 @@ describe("AnubisService", () => {
 
     try {
       // Register a real service first
-      const service = new AnubisService(runtime as any);
-      runtime.registerService(AnubisService.serviceType, service);
+      const service = new NubiService(runtime as any);
+      runtime.registerService(NubiService.serviceType, service);
 
       // Spy on the real service's stop method
       const stopSpy = spyOn(service, "stop");
 
       // Call the static stop method
-      await AnubisService.stop(runtime as any);
+      await NubiService.stop(runtime as any);
 
       // Verify the service's stop method was called
       expect(stopSpy).toHaveBeenCalled();
@@ -354,7 +354,7 @@ describe("AnubisService", () => {
     }
 
     documentTestResult(
-      "AnubisService stop",
+      "NubiService stop",
       {
         success: !error,
       },
@@ -370,7 +370,7 @@ describe("AnubisService", () => {
     let error: Error | null = null;
 
     try {
-      await AnubisService.stop(cleanRuntime as any);
+      await NubiService.stop(cleanRuntime as any);
       // Should not reach here
       expect(true).toBe(false);
     } catch (e) {
@@ -383,7 +383,7 @@ describe("AnubisService", () => {
     }
 
     documentTestResult(
-      "AnubisService non-existent stop",
+      "NubiService non-existent stop",
       {
         errorThrown: !!error,
         errorMessage: error?.message || "No error message",
@@ -394,7 +394,7 @@ describe("AnubisService", () => {
 
   it("should stop a registered service", async () => {
     // First start the service
-    const startResult = await AnubisService.start(testRuntime as any);
+    const startResult = await NubiService.start(testRuntime as any);
     expect(startResult).toBeTruthy();
 
     let stopError: Error | unknown = null;
@@ -402,7 +402,7 @@ describe("AnubisService", () => {
 
     try {
       // Then stop it
-      await AnubisService.stop(testRuntime as any);
+      await NubiService.stop(testRuntime as any);
       stopSuccess = true;
     } catch (e) {
       stopError = e;
@@ -410,7 +410,7 @@ describe("AnubisService", () => {
     }
 
     documentTestResult(
-      "AnubisService stop",
+      "NubiService stop",
       {
         success: stopSuccess,
         errorThrown: !!stopError,

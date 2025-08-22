@@ -327,7 +327,7 @@ export class EngagementVerifier {
     await this.saveUserHistoryToDatabase(user);
   }
 
-  async getTweetStats(tweetId: string): Promise<TweetStats | null> {
+  async getTweetStats(tweetId: string): Promise<TweetStats | undefined> {
     // Check cache first
     let stats = this.tweetCache.get(tweetId);
     
@@ -342,7 +342,7 @@ export class EngagementVerifier {
     return stats;
   }
 
-  private async fetchTweetStatsFromAPI(tweetId: string): Promise<TweetStats | null> {
+  private async fetchTweetStatsFromAPI(tweetId: string): Promise<TweetStats | undefined> {
     // This would integrate with X/Twitter API
     // For now, simulate some stats
     return {

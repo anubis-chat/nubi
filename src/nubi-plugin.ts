@@ -14,9 +14,9 @@ import {
   DatabaseAdapter,
   EventHandler,
 } from "@elizaos/core";
-import { AnubisService } from "./services/anubis-service";
-import { anubisProviders } from "./providers";
-import { anubisEvaluators } from "./anubis-evaluators";
+import { NubiService } from "./nubi-service";
+import { nubiProviders } from "./providers";
+import { nubiEvaluators } from "./nubi-evaluators";
 import MessageBusService from "./message-bus";
 import StrategyActionOrchestratorService from "./strategic-action-orchestrator";
 import PluginConfigurationManagerService from "./plugin-configuration-manager";
@@ -197,9 +197,9 @@ const processMessageAction: Action = {
     }
 
     // Check if service is available
-    const service = runtime.getService<AnubisService>("anubis");
+    const service = runtime.getService<NubiService>("nubi");
     if (!service) {
-      logger.warn("AnubisService not available for message processing");
+      logger.warn("NubiService not available for message processing");
       return false;
     }
 
@@ -239,7 +239,7 @@ const processMessageAction: Action = {
     const startTime = Date.now();
 
     try {
-      const service = runtime.getService<AnubisService>("anubis");
+      const service = runtime.getService<NubiService>("nubi");
       if (!service) {
         return {
           success: false,
@@ -548,7 +548,7 @@ const raidCommandAction: Action = {
     callback: HandlerCallback,
   ): Promise<ActionResult> => {
     try {
-      const service = runtime.getService<AnubisService>("anubis");
+      const service = runtime.getService<NubiService>("nubi");
       if (!service) {
         return {
           success: false,
@@ -642,7 +642,7 @@ const advancedContextProvider: Provider = {
   name: "advancedContext",
   get: async (runtime: IAgentRuntime, message: Memory, state: State) => {
     try {
-      const service = runtime.getService("anubis") as AnubisService;
+      const service = runtime.getService("nubi") as NubiService;
 
       if (!service) {
         return {
@@ -882,12 +882,12 @@ async function validateServiceDependencies(
 }
 
 /**
- * Anubis Plugin with proper ElizaOS architecture
+ * NUBI Plugin - The Symbiosis of Anubis with proper ElizaOS architecture
  */
-const anubisPlugin: Plugin = {
-  name: "anubis",
+const nubiPlugin: Plugin = {
+  name: "nubi",
   description:
-    "Anubis AI agent plugin with personality, knowledge, and social coordination",
+    "NUBI - The Symbiosis of Anubis AI agent plugin with personality, knowledge, and social coordination",
 
   // 1. Database Adapter (if any) - none needed for this plugin
 
@@ -902,10 +902,10 @@ const anubisPlugin: Plugin = {
   ],
 
   // 3. Evaluators (response processing and learning)
-  evaluators: [sessionStateEvaluator, ...anubisEvaluators],
+  evaluators: [sessionStateEvaluator, ...nubiEvaluators],
 
   // 4. Providers (context and data sources)
-  providers: [advancedContextProvider, ...anubisProviders],
+  providers: [advancedContextProvider, ...nubiProviders],
 
   // 5. Models (if any) - handled by external plugins
 
@@ -969,7 +969,7 @@ const anubisPlugin: Plugin = {
       type: "GET",
       handler: async (request: any, response: any, runtime: IAgentRuntime) => {
         try {
-          const service = runtime.getService<AnubisService>("anubis");
+          const service = runtime.getService<NubiService>("nubi");
           const messageBus =
             runtime.getService<MessageBusService>("message-bus");
 
@@ -1009,7 +1009,7 @@ const anubisPlugin: Plugin = {
         );
 
         // Process message through Anubis service
-        const service = runtime.getService("anubis") as AnubisService;
+        const service = runtime.getService("nubi") as NubiService;
         if (service) {
           await service.processIncomingMessage(message);
         }
@@ -1024,7 +1024,7 @@ const anubisPlugin: Plugin = {
         );
 
         // Handle voice messages with enhanced processing
-        const service = runtime.getService("anubis") as AnubisService | undefined;
+        const service = runtime.getService("nubi") as NubiService | undefined;
         if (service) {
           await service.processVoiceMessage(message);
         }
@@ -1039,7 +1039,7 @@ const anubisPlugin: Plugin = {
         );
 
         // Initialize world-specific context
-        const service = runtime.getService<AnubisService>("anubis");
+        const service = runtime.getService<NubiService>("nubi");
         if (service) {
           await service.onWorldConnected((world as any).id || String(world), rooms, entities);
         }
@@ -1062,7 +1062,7 @@ const anubisPlugin: Plugin = {
         );
 
         // Handle entity joining world
-        const service = runtime.getService<AnubisService>("anubis");
+        const service = runtime.getService<NubiService>("nubi");
         if (service) {
           await service.onWorldJoined((world as any).id || String(world), undefined, rooms, entities);
         }
@@ -1076,14 +1076,14 @@ const anubisPlugin: Plugin = {
     UserIdentityService, // User identity resolution
     MessageBusService, // Message bus foundation
     StrategyActionOrchestratorService, // Workflow orchestration
-    AnubisService, // Core Anubis functionality
+    NubiService, // Core NUBI functionality
   ],
 
   // Configuration with proper ElizaOS patterns
   config: {
     // Plugin metadata
     version: "2.1.0",
-    author: "ElizaOS Community - Anubis Project",
+    author: "ElizaOS Community - NUBI Project",
     license: "MIT",
     elizaVersion: ">=1.4.0",
     nodeVersion: ">=18.0.0",
@@ -1112,7 +1112,7 @@ const anubisPlugin: Plugin = {
 
     // Service dependencies and startup order
     serviceDependencies: {
-      anubis: ["message-bus", "plugin-configuration-manager"],
+      nubi: ["message-bus", "plugin-configuration-manager"],
       "strategic-action-orchestrator": ["message-bus"],
       "message-bus": ["plugin-configuration-manager"],
     },
@@ -1191,4 +1191,4 @@ const anubisPlugin: Plugin = {
   },
 };
 
-export default anubisPlugin;
+export default nubiPlugin;

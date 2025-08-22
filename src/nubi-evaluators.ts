@@ -7,14 +7,14 @@ import {
   logger,
   elizaLogger,
 } from "@elizaos/core";
-import { AnubisService } from "./anubis-service";
+import { NubiService } from "./nubi-service";
 import { SecurityFilter } from "./services/security-filter";
 
 /**
  * Evaluator for analyzing and evolving personality traits
  */
 export const personalityEvolutionEvaluator: Evaluator = {
-  name: "ANUBIS_PERSONALITY_EVOLUTION",
+  name: "NUBI_PERSONALITY_EVOLUTION",
   description:
     "Analyzes conversations to evolve personality traits based on user interactions and feedback",
   alwaysRun: false, // Run selectively to avoid overwhelming
@@ -83,9 +83,9 @@ export const personalityEvolutionEvaluator: Evaluator = {
     callback?: HandlerCallback,
   ): Promise<any> => {
     try {
-      const service = runtime.getService<AnubisService>("anubis");
+      const service = runtime.getService<NubiService>("nubi");
       if (!service) {
-        logger.warn("AnubisService not found for personality evolution");
+        logger.warn("NubiService not found for personality evolution");
         return { success: false };
       }
 
@@ -164,7 +164,7 @@ export const personalityEvolutionEvaluator: Evaluator = {
  * Evaluator for analyzing anti-detection pattern effectiveness
  */
 export const antiDetectionEvaluator: Evaluator = {
-  name: "ANUBIS_ANTI_DETECTION_ANALYSIS",
+  name: "NUBI_ANTI_DETECTION_ANALYSIS",
   description:
     "Monitors anti-detection pattern usage and adjusts strategies based on effectiveness",
   alwaysRun: false,
@@ -206,7 +206,7 @@ export const antiDetectionEvaluator: Evaluator = {
     callback?: HandlerCallback,
   ): Promise<any> => {
     try {
-      const service = runtime.getService<AnubisService>("anubis");
+      const service = runtime.getService<NubiService>("nubi");
       if (!service) {
         return { success: false };
       }
@@ -260,7 +260,7 @@ export const antiDetectionEvaluator: Evaluator = {
  * Evaluator for tracking engagement success and community building
  */
 export const engagementSuccessEvaluator: Evaluator = {
-  name: "ANUBIS_ENGAGEMENT_SUCCESS",
+  name: "NUBI_ENGAGEMENT_SUCCESS",
   description:
     "Analyzes conversation outcomes to improve engagement strategies",
   alwaysRun: false,
@@ -306,7 +306,7 @@ export const engagementSuccessEvaluator: Evaluator = {
     callback?: HandlerCallback,
   ): Promise<any> => {
     try {
-      const service = runtime.getService<AnubisService>("anubis");
+      const service = runtime.getService<NubiService>("nubi");
       if (!service) {
         return { success: false };
       }
@@ -460,7 +460,7 @@ function extractEngagementPattern(message: Memory, state: State): any {
  * - Monitors for prompt injection attacks
  */
 export const securityEvaluator: Evaluator = {
-  name: "ANUBIS_SECURITY",
+  name: "NUBI_SECURITY",
   
   description: "Evaluates messages for security threats and blocks malicious attempts",
   
@@ -635,7 +635,7 @@ export const securityEvaluator: Evaluator = {
  * even if it somehow got past the initial security checks
  */
 export const antiPhishingEvaluator: Evaluator = {
-  name: "ANUBIS_ANTI_PHISHING",
+  name: "NUBI_ANTI_PHISHING",
   
   description: "Prevents agent from sharing sensitive information in responses",
   
@@ -729,7 +729,7 @@ export const antiPhishingEvaluator: Evaluator = {
 };
 
 // Export all evaluators
-export const anubisEvaluators = [
+export const nubiEvaluators = [
   personalityEvolutionEvaluator,
   antiDetectionEvaluator,
   engagementSuccessEvaluator,
@@ -737,4 +737,4 @@ export const anubisEvaluators = [
   antiPhishingEvaluator,
 ];
 
-export default anubisEvaluators;
+export default nubiEvaluators;

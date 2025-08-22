@@ -5,51 +5,51 @@ import {
   beforeEach,
 } from "bun:test";
 import { validateCharacter, Memory, State, logger } from "@elizaos/core";
-import { anubisCharacter } from "../anubis-character";
-import anubisPlugin from "../anubis-plugin";
+import { nubiCharacter } from "../nubi-character";
+import nubiPlugin from "../nubi-plugin";
 import { securityFilter } from "../services/security-filter";
 
-describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
+describe("🔥 NUBI CORE FUNCTIONALITY TESTS", () => {
   
   describe("📚 Character Validation", () => {
     it("should have correct character metadata", () => {
-      expect(anubisCharacter.name).toBe("Anubis");
-      expect(anubisCharacter.username).toBe("anubis");
+      expect(nubiCharacter.name).toBe("NUBI");
+      expect(nubiCharacter.username).toBe("nubi");
     });
 
     it("should have complete bio array", () => {
-      expect(Array.isArray(anubisCharacter.bio)).toBe(true);
-      expect(anubisCharacter.bio.length).toBe(22);
+      expect(Array.isArray(nubiCharacter.bio)).toBe(true);
+      expect(nubiCharacter.bio.length).toBe(24);
       
       // Check bio content
-      const bioString = anubisCharacter.bio.join(" ");
-      expect(bioString).toContain("Space-traveling jackal god");
+      const bioString = nubiCharacter.bio.join(" ");
+      expect(bioString).toContain("Symbiosis of Anubis");
       expect(bioString).toContain("Anubis.Chat");
       expect(bioString).toContain("AI models");
     });
 
     it("should have god-mode system prompt", () => {
-      expect(anubisCharacter.system).toBeDefined();
-      expect(anubisCharacter.system?.length).toBeGreaterThan(5000);
+      expect(nubiCharacter.system).toBeDefined();
+      expect(nubiCharacter.system?.length).toBeGreaterThan(5000);
       
       // Check for key personality elements
-      expect(anubisCharacter.system).toContain("interdimensional jackal god");
-      expect(anubisCharacter.system).toContain("Anubis.Chat");
-      expect(anubisCharacter.system).toContain("effortlessly funny");
-      expect(anubisCharacter.system).toContain("48Laws tactical");
-      expect(anubisCharacter.system).toContain("quantum manifestation");
+      expect(nubiCharacter.system).toContain("symbiotic essence");
+      expect(nubiCharacter.system).toContain("Anubis.Chat");
+      expect(nubiCharacter.system).toContain("effortlessly funny");
+      expect(nubiCharacter.system).toContain("48Laws tactical");
+      expect(nubiCharacter.system).toContain("quantum manifestation");
     });
 
     it("should have comprehensive message examples", () => {
-      expect(Array.isArray(anubisCharacter.messageExamples)).toBe(true);
-      expect(anubisCharacter.messageExamples?.length).toBe(11);
+      expect(Array.isArray(nubiCharacter.messageExamples)).toBe(true);
+      expect(nubiCharacter.messageExamples?.length).toBe(11);
       
       // Check example structure
-      anubisCharacter.messageExamples?.forEach(example => {
+      nubiCharacter.messageExamples?.forEach(example => {
         expect(Array.isArray(example)).toBe(true);
         expect(example.length).toBeGreaterThanOrEqual(2);
         
-        // Each example should have user and Anubis messages
+        // Each example should have user and Anubis messages  
         const hasUser = example.some(m => m.name === "{{user}}");
         const hasAnubis = example.some(m => m.name === "Anubis");
         expect(hasUser).toBe(true);
@@ -58,11 +58,11 @@ describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
     });
 
     it("should have all knowledge and topics", () => {
-      expect(Array.isArray(anubisCharacter.topics)).toBe(true);
-      expect(anubisCharacter.topics?.length).toBe(18);
+      expect(Array.isArray(nubiCharacter.topics)).toBe(true);
+      expect(nubiCharacter.topics?.length).toBe(18);
       
       // Check for key topics
-      const topics = anubisCharacter.topics || [];
+      const topics = nubiCharacter.topics || [];
       expect(topics.some(t => t.includes("Solana"))).toBe(true);
       expect(topics.some(t => t.includes("DeFi"))).toBe(true);
       // Anubis.Chat is in knowledge, not topics
@@ -70,47 +70,47 @@ describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
     });
 
     it("should have style configuration", () => {
-      expect(anubisCharacter.style).toBeDefined();
-      expect(Array.isArray(anubisCharacter.style?.all)).toBe(true);
-      expect(Array.isArray(anubisCharacter.style?.chat)).toBe(true);
-      expect(Array.isArray(anubisCharacter.style?.post)).toBe(true);
+      expect(nubiCharacter.style).toBeDefined();
+      expect(Array.isArray(nubiCharacter.style?.all)).toBe(true);
+      expect(Array.isArray(nubiCharacter.style?.chat)).toBe(true);
+      expect(Array.isArray(nubiCharacter.style?.post)).toBe(true);
       
       // Check style content
       const allStyles = [
-        ...(anubisCharacter.style?.all || []),
-        ...(anubisCharacter.style?.chat || []),
-        ...(anubisCharacter.style?.post || [])
+        ...(nubiCharacter.style?.all || []),
+        ...(nubiCharacter.style?.chat || []),
+        ...(nubiCharacter.style?.post || [])
       ];
       expect(allStyles.length).toBeGreaterThan(20);
     });
 
     it("should validate with ElizaOS", () => {
-      const result = validateCharacter(anubisCharacter);
+      const result = validateCharacter(nubiCharacter);
       expect(result.success).toBe(true);
-      expect(result.data?.name).toBe("Anubis");
+      expect(result.data?.name).toBe("NUBI");
       expect(result.error).toBeUndefined();
     });
   });
 
   describe("🔌 Plugin Configuration", () => {
     it("should have correct plugin metadata", () => {
-      expect(anubisPlugin.name).toBe("anubis");
-      expect(anubisPlugin.description).toBe("Anubis AI agent plugin with personality, knowledge, and social coordination");
-      expect(anubisPlugin.config?.version).toBe("2.1.0");
-      expect(anubisPlugin.config?.author).toBe("ElizaOS Community - Anubis Project");
+      expect(nubiPlugin.name).toBe("nubi");
+      expect(nubiPlugin.description).toBe("NUBI - The Symbiosis of Anubis AI agent plugin with personality, knowledge, and social coordination");
+      expect(nubiPlugin.config?.version).toBe("2.1.0");
+      expect(nubiPlugin.config?.author).toBe("ElizaOS Community - NUBI Project");
     });
 
     it("should have all required actions", () => {
-      expect(Array.isArray(anubisPlugin.actions)).toBe(true);
-      expect(anubisPlugin.actions?.length).toBe(3);
+      expect(Array.isArray(nubiPlugin.actions)).toBe(true);
+      expect(nubiPlugin.actions?.length).toBe(3);
       
-      const actionNames = anubisPlugin.actions?.map(a => a.name) || [];
+      const actionNames = nubiPlugin.actions?.map(a => a.name) || [];
       expect(actionNames).toContain("ANUBIS_PROCESS_MESSAGE");
       expect(actionNames).toContain("ANUBIS_SESSION_MANAGEMENT");
       expect(actionNames).toContain("ANUBIS_RAID_COMMANDS");
       
       // Check action structure
-      anubisPlugin.actions?.forEach(action => {
+      nubiPlugin.actions?.forEach(action => {
         expect(action.name).toBeDefined();
         expect(action.description).toBeDefined();
         expect(typeof action.handler).toBe("function");
@@ -119,11 +119,11 @@ describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
     });
 
     it("should have evaluators configured", () => {
-      expect(Array.isArray(anubisPlugin.evaluators)).toBe(true);
-      expect(anubisPlugin.evaluators?.length).toBeGreaterThan(1);
+      expect(Array.isArray(nubiPlugin.evaluators)).toBe(true);
+      expect(nubiPlugin.evaluators?.length).toBeGreaterThan(1);
       
       // Check evaluator structure
-      anubisPlugin.evaluators?.forEach(evaluator => {
+      nubiPlugin.evaluators?.forEach(evaluator => {
         expect(evaluator.name).toBeDefined();
         expect(evaluator.description).toBeDefined();
         expect(typeof evaluator.handler).toBe("function");
@@ -132,30 +132,30 @@ describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
     });
 
     it("should have providers configured", () => {
-      expect(Array.isArray(anubisPlugin.providers)).toBe(true);
-      expect(anubisPlugin.providers?.length).toBeGreaterThan(1);
+      expect(Array.isArray(nubiPlugin.providers)).toBe(true);
+      expect(nubiPlugin.providers?.length).toBeGreaterThan(1);
       
       // Check provider structure
-      anubisPlugin.providers?.forEach(provider => {
+      nubiPlugin.providers?.forEach(provider => {
         expect(provider.name).toBeDefined();
         expect(typeof provider.get).toBe("function");
       });
     });
 
     it("should have all 5 services", () => {
-      expect(Array.isArray(anubisPlugin.services)).toBe(true);
-      expect(anubisPlugin.services?.length).toBe(5);
+      expect(Array.isArray(nubiPlugin.services)).toBe(true);
+      expect(nubiPlugin.services?.length).toBe(5);
     });
 
     it("should have event handlers", () => {
-      expect(anubisPlugin.events).toBeDefined();
-      expect(Array.isArray(anubisPlugin.events?.MESSAGE_RECEIVED)).toBe(true);
-      expect(Array.isArray(anubisPlugin.events?.VOICE_MESSAGE_RECEIVED)).toBe(true);
-      expect(Array.isArray(anubisPlugin.events?.WORLD_CONNECTED)).toBe(true);
-      expect(Array.isArray(anubisPlugin.events?.WORLD_JOINED)).toBe(true);
+      expect(nubiPlugin.events).toBeDefined();
+      expect(Array.isArray(nubiPlugin.events?.MESSAGE_RECEIVED)).toBe(true);
+      expect(Array.isArray(nubiPlugin.events?.VOICE_MESSAGE_RECEIVED)).toBe(true);
+      expect(Array.isArray(nubiPlugin.events?.WORLD_CONNECTED)).toBe(true);
+      expect(Array.isArray(nubiPlugin.events?.WORLD_JOINED)).toBe(true);
       
       // Each event should have handler functions
-      Object.values(anubisPlugin.events || {}).forEach(handlers => {
+      Object.values(nubiPlugin.events || {}).forEach(handlers => {
         expect(Array.isArray(handlers)).toBe(true);
         handlers.forEach(handler => {
           expect(typeof handler).toBe("function");
@@ -164,26 +164,26 @@ describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
     });
 
     it("should have routes configured", () => {
-      expect(Array.isArray(anubisPlugin.routes)).toBe(true);
-      expect(anubisPlugin.routes?.length).toBe(3);
+      expect(Array.isArray(nubiPlugin.routes)).toBe(true);
+      expect(nubiPlugin.routes?.length).toBe(3);
       
       // Check route structure
-      anubisPlugin.routes?.forEach(route => {
+      nubiPlugin.routes?.forEach(route => {
         expect(route.path).toBeDefined();
         expect(route.type).toBeDefined();
         expect(typeof route.handler).toBe("function");
       });
       
       // Check specific routes
-      const routePaths = anubisPlugin.routes?.map(r => r.path) || [];
+      const routePaths = nubiPlugin.routes?.map(r => r.path) || [];
       expect(routePaths).toContain("/sessions");
       expect(routePaths).toContain("/sessions/:id");
       expect(routePaths).toContain("/health");
     });
 
     it("should have proper configuration", () => {
-      expect(anubisPlugin.config).toBeDefined();
-      expect(anubisPlugin.config?.initializationOrder).toEqual([
+      expect(nubiPlugin.config).toBeDefined();
+      expect(nubiPlugin.config?.initializationOrder).toEqual([
         "database_adapters",
         "services",
         "providers",
@@ -193,10 +193,10 @@ describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
         "routes"
       ]);
       
-      expect(anubisPlugin.config?.features).toBeDefined();
-      expect(anubisPlugin.config?.features?.sessionManagement).toBe(true);
-      expect(anubisPlugin.config?.features?.advancedContextComposition).toBe(true);
-      expect(anubisPlugin.config?.features?.multiPartResponses).toBe(true);
+      expect(nubiPlugin.config?.features).toBeDefined();
+      expect(nubiPlugin.config?.features?.sessionManagement).toBe(true);
+      expect(nubiPlugin.config?.features?.advancedContextComposition).toBe(true);
+      expect(nubiPlugin.config?.features?.multiPartResponses).toBe(true);
     });
   });
 
@@ -316,7 +316,7 @@ describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
         tableName: "messages"
       };
 
-      const processAction = anubisPlugin.actions?.find(
+      const processAction = nubiPlugin.actions?.find(
         a => a.name === "ANUBIS_PROCESS_MESSAGE"
       );
       
@@ -349,7 +349,7 @@ describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
     });
 
     it("should have session management action", async () => {
-      const sessionAction = anubisPlugin.actions?.find(
+      const sessionAction = nubiPlugin.actions?.find(
         a => a.name === "ANUBIS_SESSION_MANAGEMENT"
       );
       
@@ -386,7 +386,7 @@ describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
     });
 
     it("should have raid command action", async () => {
-      const raidAction = anubisPlugin.actions?.find(
+      const raidAction = nubiPlugin.actions?.find(
         a => a.name === "ANUBIS_RAID_COMMANDS"
       );
       
@@ -411,7 +411,7 @@ describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
       ];
       
       requiredProps.forEach(prop => {
-        expect(anubisCharacter).toHaveProperty(prop);
+        expect(nubiCharacter).toHaveProperty(prop);
       });
     });
 
@@ -430,13 +430,13 @@ describe("🔥 ANUBIS CORE FUNCTIONALITY TESTS", () => {
       ];
       
       requiredComponents.forEach(component => {
-        expect(anubisPlugin).toHaveProperty(component);
+        expect(nubiPlugin).toHaveProperty(component);
       });
     });
 
     it("should have proper plugin initialization", () => {
-      expect(typeof anubisPlugin.init).toBe("function");
-      expect(anubisPlugin.init.length).toBeGreaterThanOrEqual(1);
+      expect(typeof nubiPlugin.init).toBe("function");
+      expect(nubiPlugin.init.length).toBeGreaterThanOrEqual(1);
     });
   });
 

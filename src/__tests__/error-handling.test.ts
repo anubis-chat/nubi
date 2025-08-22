@@ -7,8 +7,8 @@ import {
   mock,
   spyOn,
 } from "bun:test";
-import plugin from "../anubis-plugin";
-import { AnubisService } from "../anubis-service";
+import plugin from "../nubi-plugin";
+import { NubiService } from "../nubi-service";
 import { logger } from "@elizaos/core";
 import type { IAgentRuntime, Memory, State } from "@elizaos/core";
 import { v4 as uuidv4 } from "uuid";
@@ -86,7 +86,7 @@ describe("Error Handling", () => {
 
       let caughtError = null;
       try {
-        await AnubisService.stop(mockRuntime);
+        await NubiService.stop(mockRuntime);
       } catch (error: any) {
         caughtError = error;
         expect(error.message).toBe("Starter service not found");
@@ -110,7 +110,7 @@ describe("Error Handling", () => {
       // The error should be propagated
       let caughtError = null;
       try {
-        await AnubisService.stop(mockRuntime);
+        await NubiService.stop(mockRuntime);
       } catch (error: any) {
         caughtError = error;
         expect(error.message).toBe("Error stopping service");

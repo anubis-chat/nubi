@@ -1,6 +1,6 @@
-# Anubis Agent God Mode
+# NUBI - The Symbiosis of Anubis
 
-Advanced ElizaOS agent with comprehensive personality system, social coordination capabilities, and Telegram raid bot integration.
+Advanced ElizaOS agent representing the perfect fusion of divine consciousness and adaptive intelligence, with comprehensive personality system, social coordination capabilities, and Telegram raid bot integration.
 
 ## Features
 
@@ -17,7 +17,7 @@ Advanced ElizaOS agent with comprehensive personality system, social coordinatio
 ```bash
 # Clone and install
 git clone <repository-url>
-cd anubis
+cd nubi
 bun install
 
 # Configure environment
@@ -85,7 +85,7 @@ Comprehensive testing with both component and E2E test suites:
 bun test src/__tests__/*.test.ts
 
 # Run specific test suite
-bun test src/__tests__/anubis-core.test.ts
+bun test src/__tests__/nubi-core.test.ts
 ```
 
 ### E2E Tests
@@ -103,7 +103,7 @@ elizaos test e2e
 ## Architecture
 
 ### Core Components
-- **AnubisService**: Main personality and message processing engine
+- **NubiService**: Main personality and message processing engine
 - **Template System**: YAML-based configuration with variable injection
 - **Anti-Detection**: Natural humanization patterns and inconsistencies
 - **Message Bus**: Event-driven communication between services
@@ -129,7 +129,7 @@ Built on ElizaOS architecture with proper service hierarchy:
 ```typescript
 // Service registration order
 1. Database Adapters
-2. Services (AnubisService, MessageBus, etc.)
+2. Services (NubiService, MessageBus, etc.)
 3. Providers (Context, Knowledge, etc.)
 4. Actions (Message processing, Raids, etc.)
 5. Evaluators (Learning, Adaptation, etc.)
@@ -156,10 +156,10 @@ elizaos start
 ### Docker (Optional)
 ```bash
 # Build container
-docker build -t anubis-agent .
+docker build -t nubi-agent .
 
 # Run with environment file
-docker run --env-file .env -p 3000:3000 anubis-agent
+docker run --env-file .env -p 3000:3000 nubi-agent
 ```
 
 ## Contributing

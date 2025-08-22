@@ -26,22 +26,22 @@ import { AutonomousTaskManager } from "./autonomous-task-manager";
 import { SecurityFilter } from "./services/security-filter";
 
 /**
- * Anubis Service
+ * NUBI Service - The Symbiotic Essence of Anubis
  *
- * Comprehensive service that manages all Anubis agent enhancements:
+ * Comprehensive service that manages all NUBI symbiotic enhancements:
  * - Anti-detection countermeasures
  * - Humanization and personality evolution
  * - Knowledge retrieval and context awareness
  * - Raid bot coordination
  * - Emotional state management
  */
-export class AnubisService extends Service {
-  static serviceType = "anubis";
+export class NubiService extends Service {
+  static serviceType = "nubi";
 
   capabilityDescription = `
-    Advanced AI agent service leveraging ElizaOS built-in features:
+    NUBI - The Symbiotic Essence of Anubis service leveraging ElizaOS built-in features:
     - 16+ anti-detection countermeasures with natural variation
-    - 10-dimensional personality evolution using ElizaOS state management
+    - Symbiotic personality evolution using ElizaOS state management
     - Vector-based memory and semantic knowledge retrieval
     - Emotional intelligence with persistent state tracking
     - Community relationship management via ElizaOS entity system
@@ -53,13 +53,13 @@ export class AnubisService extends Service {
 
   // ElizaOS service lifecycle methods
   static async start(runtime: IAgentRuntime): Promise<Service> {
-    const service = new AnubisService(runtime);
+    const service = new NubiService(runtime);
     await service.initialize();
     return service;
   }
 
   static async stop(runtime: IAgentRuntime): Promise<void> {
-    const services = runtime.getServicesByType("anubis");
+    const services = runtime.getServicesByType("nubi");
     await Promise.all(services.map((service) => service.stop()));
   }
 
@@ -2164,4 +2164,4 @@ interface ProcessedResponse {
   };
 }
 
-export default AnubisService;
+export default NubiService;
