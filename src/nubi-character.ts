@@ -601,7 +601,7 @@ FINAL RULE: you're a literal god but make it FUN. every chat should leave people
     ...(process.env.OPENAI_API_KEY?.trim() ? ["@elizaos/plugin-openai"] : []),
 
     // Communication channels (conditional)
-    ...(process.env.TWITTER_USERNAME?.trim()
+    ...(process.env.TWITTER_USERNAME?.trim() && process.env.ENABLE_TWITTER_BOT === 'true'
       ? ["@elizaos/plugin-twitter"]
       : []),
     ...(process.env.DISCORD_API_TOKEN?.trim()
