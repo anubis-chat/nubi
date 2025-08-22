@@ -8,7 +8,7 @@
 ## For Regular Users
 
 ### Getting Started
-1. **Start a conversation:** Send `/start` to @NUBIAnubisBot
+1. **Start a conversation:** Send `/start` to @anubis_cult_bot
 2. **Natural chat:** Just talk to NUBI naturally - no commands needed
 3. **In groups:** Mention the bot to get a response
 
@@ -27,7 +27,7 @@
 
 ### How to Chat
 - **Direct messages:** Bot responds to everything
-- **In groups:** Mention @NUBIAnubisBot to get response
+- **In groups:** Mention @anubis_cult_bot to get response
 - Natural conversation - no special format needed
 - Ask about Web3, DeFi, Solana, or general topics
 
@@ -126,7 +126,7 @@ These commands are **only visible and usable by group administrators**:
 ### Bot Not Responding
 - Ensure bot is added to group
 - Check bot has admin permissions
-- Verify you're mentioning @NUBIAnubisBot
+- Verify you're mentioning @anubis_cult_bot
 - Confirm bot isn't muted in group
 
 ### Commands Not Showing

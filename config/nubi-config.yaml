@@ -81,6 +81,7 @@ plugins:
     enabled: true
     priority: "high" 
     config:
+      bot_username: "@anubis_cult_bot"
       raid_coordination: true
       max_concurrent_raids: 3
       auto_raid_creation: true

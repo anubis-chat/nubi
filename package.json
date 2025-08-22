@@ -35,7 +35,6 @@
   ],
   "dependencies": {
     "@elizaos/cli": "latest",
-    "@elizaos/client-twitter": "^0.25.6-alpha.1",
     "@elizaos/core": "latest",
     "@elizaos/plugin-aigateway": "https://github.com/Dexploarer/plugin-aigateway",
     "@elizaos/plugin-bootstrap": "latest",
@@ -65,6 +64,7 @@
     "sqlite3": "^5.1.7",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^4.1.10",
+    "twitter-api-v2": "^1.25.0",
     "zod": "3.24.2"
   },
   "devDependencies": {

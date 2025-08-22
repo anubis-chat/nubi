@@ -23,7 +23,7 @@ NUBI is an AI conversational agent that engages users across Discord and Telegra
 
 ### Community Moderators
 - **IrieRubz** - Telegram: @IrieRubz, X: @irierubz
-- **stoicmido** - Telegram: @stoicmido
+- **stoicmido** - X: @stoicmido | Telegram: @stoicmido
 
 ## Features
 
@@ -103,7 +103,7 @@ See [TELEGRAM_BOT_GUIDE.md](./TELEGRAM_BOT_GUIDE.md) for detailed Telegram setup
 ### Telegram Bot
 - **Setup:** Run `bun run setup:telegram` to configure commands
 - **Guide:** See [TELEGRAM_BOT_GUIDE.md](./TELEGRAM_BOT_GUIDE.md)
-- **Username:** @NUBIAnubisBot
+- **Username:** @anubis_cult_bot
 - **Features:** Natural chat, admin commands, raid system (when enabled)
 
 ### Discord Bot
