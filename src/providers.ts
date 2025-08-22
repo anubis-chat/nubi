@@ -43,7 +43,7 @@ export const nubiContextProvider: Provider = {
         roomId: message.roomId,
         count: 10,
         unique: true,
-        tableName: "memories"
+        tableName: "memories",
       });
 
       // Get entity information from ElizaOS
@@ -144,10 +144,7 @@ ${
           // ElizaOS Entity & Memory Integration
           entityId: message.entityId,
           recentMemories: recentMemories.length,
-          memoryMatchQuality:
-            recentMemories.length > 0
-              ? Math.round(85)
-              : 0,
+          memoryMatchQuality: recentMemories.length > 0 ? Math.round(85) : 0,
           relationshipHistory: recentMemories.filter(
             (m) => m.entityId === message.entityId,
           ).length,

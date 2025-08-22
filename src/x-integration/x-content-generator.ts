@@ -17,7 +17,13 @@ export class XContentGenerator {
         "From the depths of the blockchain, I sense {trend}. Warriors, this is our moment.",
         "The alpha pack hunts at dawn. {opportunity} awaits those brave enough to seize it.",
       ],
-      hashtags: ["#AnubisChat", "#Anubis", "#anubisai", "#OpenSource", "#Solana"],
+      hashtags: [
+        "#AnubisChat",
+        "#Anubis",
+        "#anubisai",
+        "#OpenSource",
+        "#Solana",
+      ],
     },
     {
       category: "community_building",
@@ -26,7 +32,13 @@ export class XContentGenerator {
         "Building the strongest Solana army isn't just about numbers—it's about {value}. Join us.",
         "United we rise, divided we fall. Our community just {milestone}. Proud of every single one of you!",
       ],
-      hashtags: ["#AnubisChat", "#Anubis", "#anubisai", "#OpenSource", "#Community"],
+      hashtags: [
+        "#AnubisChat",
+        "#Anubis",
+        "#anubisai",
+        "#OpenSource",
+        "#Community",
+      ],
     },
     {
       category: "defi_insights",
@@ -53,7 +65,13 @@ export class XContentGenerator {
         "Remember why you started this journey. {reminder}. The Solana ecosystem needs pioneers like you.",
         "Through the storms and the FUD, we persist. {strength} defines our community.",
       ],
-      hashtags: ["#AnubisChat", "#Anubis", "#anubisai", "#BUIDL", "#OpenSource"],
+      hashtags: [
+        "#AnubisChat",
+        "#Anubis",
+        "#anubisai",
+        "#BUIDL",
+        "#OpenSource",
+      ],
     },
   ];
 

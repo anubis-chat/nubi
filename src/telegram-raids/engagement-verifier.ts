@@ -5,7 +5,7 @@ export interface EngagementData {
   tweetId: string;
   userId: string;
   username: string;
-  engagementType: 'like' | 'retweet' | 'reply' | 'quote_tweet';
+  engagementType: "like" | "retweet" | "reply" | "quote_tweet";
   timestamp: Date;
   verified: boolean;
   points: number;
@@ -54,10 +54,10 @@ export class EngagementVerifier {
     try {
       // Load user history from database
       await this.loadUserHistoryFromDatabase();
-      
+
       // Set up periodic cache cleanup
       setInterval(() => this.cleanupCache(), 60 * 60 * 1000); // Every hour
-      
+
       logger.info("Engagement Verifier initialized successfully");
     } catch (error) {
       logger.error("Failed to initialize Engagement Verifier:", error);
@@ -69,7 +69,7 @@ export class EngagementVerifier {
     tweetId: string,
     userId: string,
     username: string,
-    engagementType: EngagementData['engagementType']
+    engagementType: EngagementData["engagementType"],
   ): Promise<{ verified: boolean; points: number; reason?: string }> {
     try {
       // Check rate limits first
@@ -84,19 +84,28 @@ export class EngagementVerifier {
 
       // In a real implementation, this would call X/Twitter API
       // For now, we'll simulate verification with some logic
-      const isVerified = await this.performEngagementVerification(tweetId, userId, engagementType);
-      
+      const isVerified = await this.performEngagementVerification(
+        tweetId,
+        userId,
+        engagementType,
+      );
+
       if (!isVerified) {
         return {
           verified: false,
           points: 0,
-          reason: "Engagement not found on X. Please ensure you completed the action.",
+          reason:
+            "Engagement not found on X. Please ensure you completed the action.",
         };
       }
 
       // Calculate points based on engagement type and user position
-      const points = await this.calculatePoints(tweetId, userId, engagementType);
-      
+      const points = await this.calculatePoints(
+        tweetId,
+        userId,
+        engagementType,
+      );
+
       // Record the engagement
       await this.recordEngagement({
         tweetId,
@@ -116,7 +125,6 @@ export class EngagementVerifier {
         verified: true,
         points: points.total,
       };
-
     } catch (error) {
       logger.error("Failed to verify engagement:", error);
       return {
@@ -130,50 +138,53 @@ export class EngagementVerifier {
   private async performEngagementVerification(
     tweetId: string,
     userId: string,
-    engagementType: string
+    engagementType: string,
   ): Promise<boolean> {
     // This is where you would integrate with X/Twitter API
     // For now, we'll simulate verification with 85% success rate
-    
+
     // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
-    
+    await new Promise((resolve) =>
+      setTimeout(resolve, 500 + Math.random() * 1000),
+    );
+
     // Simulate verification logic
     const random = Math.random();
-    
+
     // Higher success rate for likes, lower for complex engagements
     const successRates = {
-      like: 0.90,
+      like: 0.9,
       retweet: 0.85,
-      reply: 0.80,
+      reply: 0.8,
       quote_tweet: 0.75,
     };
-    
-    const successRate = successRates[engagementType as keyof typeof successRates] || 0.80;
-    
+
+    const successRate =
+      successRates[engagementType as keyof typeof successRates] || 0.8;
+
     // Simulate some users having issues (banned, private accounts, etc.)
     const userReliability = this.getUserReliability(userId);
-    
-    return random < (successRate * userReliability);
+
+    return random < successRate * userReliability;
   }
 
   private getUserReliability(userId: string): number {
     // Simulate user reliability based on history
     const history = this.userHistory.get(userId);
     if (!history) return 0.95; // New users get benefit of doubt
-    
+
     // Users with good history get higher reliability
     if (history.totalEngagements > 50) return 0.98;
     if (history.totalEngagements > 20) return 0.95;
-    if (history.totalEngagements > 5) return 0.90;
-    
+    if (history.totalEngagements > 5) return 0.9;
+
     return 0.85; // Lower for very new users
   }
 
   private async calculatePoints(
     tweetId: string,
     userId: string,
-    engagementType: EngagementData['engagementType']
+    engagementType: EngagementData["engagementType"],
   ): Promise<{ base: number; multiplier: number; total: number }> {
     // Base points for engagement types
     const basePoints = {
@@ -187,8 +198,11 @@ export class EngagementVerifier {
     let multiplier = 1.0;
 
     // Speed bonus - check if user is in first N participants
-    const participantPosition = await this.getParticipantPosition(tweetId, userId);
-    
+    const participantPosition = await this.getParticipantPosition(
+      tweetId,
+      userId,
+    );
+
     if (participantPosition <= 5) {
       multiplier = 3.0; // First 5 get 3x
     } else if (participantPosition <= 10) {
@@ -212,21 +226,26 @@ export class EngagementVerifier {
     };
   }
 
-  private async getParticipantPosition(tweetId: string, userId: string): Promise<number> {
+  private async getParticipantPosition(
+    tweetId: string,
+    userId: string,
+  ): Promise<number> {
     // Get all participants for this tweet ordered by timestamp
     const allEngagements = Array.from(this.userHistory.values())
-      .flatMap(user => user.recentEngagements)
-      .filter(engagement => engagement.tweetId === tweetId)
+      .flatMap((user) => user.recentEngagements)
+      .filter((engagement) => engagement.tweetId === tweetId)
       .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
     // Find user's position (1-indexed)
-    const position = allEngagements.findIndex(engagement => engagement.userId === userId);
+    const position = allEngagements.findIndex(
+      (engagement) => engagement.userId === userId,
+    );
     return position >= 0 ? position + 1 : allEngagements.length + 1;
   }
 
   private async checkRateLimit(
     userId: string,
-    engagementType: EngagementData['engagementType']
+    engagementType: EngagementData["engagementType"],
   ): Promise<{ allowed: boolean; timeUntilReset: number }> {
     const user = this.userHistory.get(userId);
     if (!user) return { allowed: true, timeUntilReset: 0 };
@@ -240,33 +259,38 @@ export class EngagementVerifier {
       rateLimitStatus.likesRemaining = this.rateLimits.likes.limit;
       rateLimitStatus.retweetsRemaining = this.rateLimits.retweets.limit;
       rateLimitStatus.repliesRemaining = this.rateLimits.replies.limit;
-      rateLimitStatus.resetTime = new Date(now.getTime() + this.rateLimits.likes.window);
+      rateLimitStatus.resetTime = new Date(
+        now.getTime() + this.rateLimits.likes.window,
+      );
     }
 
     // Check specific limits
     let remaining = 0;
     switch (engagementType) {
-      case 'like':
+      case "like":
         remaining = rateLimitStatus.likesRemaining;
         break;
-      case 'retweet':
+      case "retweet":
         remaining = rateLimitStatus.retweetsRemaining;
         break;
-      case 'reply':
-      case 'quote_tweet':
+      case "reply":
+      case "quote_tweet":
         remaining = rateLimitStatus.repliesRemaining;
         break;
     }
 
     return {
       allowed: remaining > 0,
-      timeUntilReset: Math.max(0, rateLimitStatus.resetTime.getTime() - now.getTime()),
+      timeUntilReset: Math.max(
+        0,
+        rateLimitStatus.resetTime.getTime() - now.getTime(),
+      ),
     };
   }
 
   private async updateRateLimit(
     userId: string,
-    engagementType: EngagementData['engagementType']
+    engagementType: EngagementData["engagementType"],
   ): Promise<void> {
     let user = this.userHistory.get(userId);
     if (!user) {
@@ -276,20 +300,32 @@ export class EngagementVerifier {
 
     // Decrement appropriate counter
     switch (engagementType) {
-      case 'like':
-        user.rateLimitStatus.likesRemaining = Math.max(0, user.rateLimitStatus.likesRemaining - 1);
+      case "like":
+        user.rateLimitStatus.likesRemaining = Math.max(
+          0,
+          user.rateLimitStatus.likesRemaining - 1,
+        );
         break;
-      case 'retweet':
-        user.rateLimitStatus.retweetsRemaining = Math.max(0, user.rateLimitStatus.retweetsRemaining - 1);
+      case "retweet":
+        user.rateLimitStatus.retweetsRemaining = Math.max(
+          0,
+          user.rateLimitStatus.retweetsRemaining - 1,
+        );
         break;
-      case 'reply':
-      case 'quote_tweet':
-        user.rateLimitStatus.repliesRemaining = Math.max(0, user.rateLimitStatus.repliesRemaining - 1);
+      case "reply":
+      case "quote_tweet":
+        user.rateLimitStatus.repliesRemaining = Math.max(
+          0,
+          user.rateLimitStatus.repliesRemaining - 1,
+        );
         break;
     }
   }
 
-  private createNewUserHistory(userId: string, username: string): UserEngagementHistory {
+  private createNewUserHistory(
+    userId: string,
+    username: string,
+  ): UserEngagementHistory {
     const now = new Date();
     return {
       userId,
@@ -330,8 +366,9 @@ export class EngagementVerifier {
   async getTweetStats(tweetId: string): Promise<TweetStats | undefined> {
     // Check cache first
     let stats = this.tweetCache.get(tweetId);
-    
-    if (!stats || Date.now() - stats.lastUpdated.getTime() > 60000) { // 1 minute cache
+
+    if (!stats || Date.now() - stats.lastUpdated.getTime() > 60000) {
+      // 1 minute cache
       // Fetch fresh stats (in real implementation, this would be from X API)
       stats = await this.fetchTweetStatsFromAPI(tweetId);
       if (stats) {
@@ -342,7 +379,9 @@ export class EngagementVerifier {
     return stats;
   }
 
-  private async fetchTweetStatsFromAPI(tweetId: string): Promise<TweetStats | undefined> {
+  private async fetchTweetStatsFromAPI(
+    tweetId: string,
+  ): Promise<TweetStats | undefined> {
     // This would integrate with X/Twitter API
     // For now, simulate some stats
     return {
@@ -356,7 +395,9 @@ export class EngagementVerifier {
     };
   }
 
-  async getUserEngagementSummary(userId: string): Promise<UserEngagementHistory | null> {
+  async getUserEngagementSummary(
+    userId: string,
+  ): Promise<UserEngagementHistory | null> {
     return this.userHistory.get(userId) || null;
   }
 
@@ -374,7 +415,8 @@ export class EngagementVerifier {
     // Clean old engagements from user history
     for (const user of this.userHistory.values()) {
       user.recentEngagements = user.recentEngagements.filter(
-        engagement => now - engagement.timestamp.getTime() < 7 * 24 * 60 * 60 * 1000 // 7 days
+        (engagement) =>
+          now - engagement.timestamp.getTime() < 7 * 24 * 60 * 60 * 1000, // 7 days
       );
     }
 
@@ -387,7 +429,9 @@ export class EngagementVerifier {
     logger.info("Loading user engagement history from database");
   }
 
-  private async saveUserHistoryToDatabase(user: UserEngagementHistory): Promise<void> {
+  private async saveUserHistoryToDatabase(
+    user: UserEngagementHistory,
+  ): Promise<void> {
     // Implementation depends on your database setup
     logger.debug(`Saving engagement history for user ${user.userId}`);
   }
@@ -397,11 +441,11 @@ export class EngagementVerifier {
     for (const user of this.userHistory.values()) {
       await this.saveUserHistoryToDatabase(user);
     }
-    
+
     // Clear caches
     this.userHistory.clear();
     this.tweetCache.clear();
-    
+
     logger.info("Engagement Verifier cleaned up");
   }
 }

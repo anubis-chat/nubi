@@ -9,14 +9,20 @@ export interface BannedRaider {
   bannedBy: string;
   bannedAt: Date;
   reason: string;
-  banType: 'permanent' | 'temporary';
+  banType: "permanent" | "temporary";
   expiresAt?: Date;
   metadata?: Record<string, any>;
 }
 
 export interface ModerationAction {
   id: string;
-  actionType: 'ban' | 'unban' | 'warn' | 'reset_raid' | 'force_unlock' | 'clear_points';
+  actionType:
+    | "ban"
+    | "unban"
+    | "warn"
+    | "reset_raid"
+    | "force_unlock"
+    | "clear_points";
   targetUserId: string;
   moderatorId: string;
   reason: string;
@@ -39,7 +45,7 @@ export class RaidModerationService {
   constructor(
     runtime: IAgentRuntime,
     raidTracker: RaidTracker,
-    chatLockManager: ChatLockManager
+    chatLockManager: ChatLockManager,
   ) {
     this.runtime = runtime;
     this.raidTracker = raidTracker;
@@ -66,15 +72,15 @@ export class RaidModerationService {
 
   private loadModerators(): void {
     // Load admin and moderator IDs from environment
-    const adminIds = process.env.TELEGRAM_ADMIN_IDS?.split(',') || [];
-    const moderatorIds = process.env.TELEGRAM_MODERATOR_IDS?.split(',') || [];
+    const adminIds = process.env.TELEGRAM_ADMIN_IDS?.split(",") || [];
+    const moderatorIds = process.env.TELEGRAM_MODERATOR_IDS?.split(",") || [];
 
-    adminIds.forEach(id => {
+    adminIds.forEach((id) => {
       this.adminUsers.add(id.trim());
       this.moderatorUsers.add(id.trim()); // Admins are also moderators
     });
 
-    moderatorIds.forEach(id => this.moderatorUsers.add(id.trim()));
+    moderatorIds.forEach((id) => this.moderatorUsers.add(id.trim()));
 
     // Add default admin if specified
     const defaultAdmin = process.env.TELEGRAM_OWNER_ID;
@@ -97,7 +103,7 @@ export class RaidModerationService {
     moderatorId: string,
     moderatorUsername: string,
     args: string[],
-    channelId: string
+    channelId: string,
   ): Promise<string> {
     // Check permissions
     if (!this.isModerator(moderatorId)) {
@@ -106,25 +112,54 @@ export class RaidModerationService {
 
     switch (command) {
       case "/banraider":
-        return this.handleBanRaider(args, moderatorId, moderatorUsername, channelId);
+        return this.handleBanRaider(
+          args,
+          moderatorId,
+          moderatorUsername,
+          channelId,
+        );
 
       case "/unbanraider":
-        return this.handleUnbanRaider(args, moderatorId, moderatorUsername, channelId);
+        return this.handleUnbanRaider(
+          args,
+          moderatorId,
+          moderatorUsername,
+          channelId,
+        );
 
       case "/warnraider":
-        return this.handleWarnRaider(args, moderatorId, moderatorUsername, channelId);
+        return this.handleWarnRaider(
+          args,
+          moderatorId,
+          moderatorUsername,
+          channelId,
+        );
 
       case "/raiderstatus":
         return this.handleRaiderStatus(args, moderatorId, channelId);
 
       case "/resetraid":
-        return this.handleResetRaid(args, moderatorId, moderatorUsername, channelId);
+        return this.handleResetRaid(
+          args,
+          moderatorId,
+          moderatorUsername,
+          channelId,
+        );
 
       case "/forceunlock":
-        return this.handleForceUnlock(moderatorId, moderatorUsername, channelId);
+        return this.handleForceUnlock(
+          moderatorId,
+          moderatorUsername,
+          channelId,
+        );
 
       case "/clearpoints":
-        return this.handleClearPoints(args, moderatorId, moderatorUsername, channelId);
+        return this.handleClearPoints(
+          args,
+          moderatorId,
+          moderatorUsername,
+          channelId,
+        );
 
       case "/modlog":
         return this.handleModerationLog(args, moderatorId, channelId);
@@ -141,14 +176,14 @@ export class RaidModerationService {
     args: string[],
     moderatorId: string,
     moderatorUsername: string,
-    channelId: string
+    channelId: string,
   ): Promise<string> {
     if (args.length < 2) {
       return "❌ Usage: /banraider [username/userid] [reason]";
     }
 
-    const targetIdentifier = args[0].replace('@', '');
-    const reason = args.slice(1).join(' ');
+    const targetIdentifier = args[0].replace("@", "");
+    const reason = args.slice(1).join(" ");
 
     try {
       // Find user ID (this would require a proper user lookup system)
@@ -169,7 +204,7 @@ export class RaidModerationService {
         bannedBy: moderatorId,
         bannedAt: new Date(),
         reason,
-        banType: 'permanent',
+        banType: "permanent",
       };
 
       // Save to database and memory
@@ -179,7 +214,7 @@ export class RaidModerationService {
       // Log moderation action
       await this.logModerationAction({
         id: `mod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        actionType: 'ban',
+        actionType: "ban",
         targetUserId,
         moderatorId,
         reason,
@@ -190,12 +225,13 @@ export class RaidModerationService {
       // Send notification
       await this.sendModerationNotification(
         channelId,
-        `🔨 **DIVINE JUDGMENT RENDERED** 🔨\n\n@${targetIdentifier} has been banished from all raids by @${moderatorUsername}\n\n**Reason:** ${reason}\n\n*The gods have spoken.*`
+        `🔨 **DIVINE JUDGMENT RENDERED** 🔨\n\n@${targetIdentifier} has been banished from all raids by @${moderatorUsername}\n\n**Reason:** ${reason}\n\n*The gods have spoken.*`,
       );
 
-      logger.info(`User ${targetIdentifier} banned by ${moderatorUsername}: ${reason}`);
+      logger.info(
+        `User ${targetIdentifier} banned by ${moderatorUsername}: ${reason}`,
+      );
       return `✅ User @${targetIdentifier} has been permanently banned from raids.`;
-
     } catch (error) {
       logger.error("Failed to ban raider:", error);
       return "❌ Failed to ban user. Please try again.";
@@ -206,14 +242,14 @@ export class RaidModerationService {
     args: string[],
     moderatorId: string,
     moderatorUsername: string,
-    channelId: string
+    channelId: string,
   ): Promise<string> {
     if (args.length < 1) {
       return "❌ Usage: /unbanraider [username/userid] [optional reason]";
     }
 
-    const targetIdentifier = args[0].replace('@', '');
-    const reason = args.slice(1).join(' ') || 'No reason provided';
+    const targetIdentifier = args[0].replace("@", "");
+    const reason = args.slice(1).join(" ") || "No reason provided";
 
     try {
       const targetUserId = await this.findUserIdByIdentifier(targetIdentifier);
@@ -234,7 +270,7 @@ export class RaidModerationService {
       // Log moderation action
       await this.logModerationAction({
         id: `mod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        actionType: 'unban',
+        actionType: "unban",
         targetUserId,
         moderatorId,
         reason,
@@ -245,12 +281,13 @@ export class RaidModerationService {
       // Send notification
       await this.sendModerationNotification(
         channelId,
-        `🌟 **DIVINE MERCY GRANTED** 🌟\n\n@${targetIdentifier} has been pardoned and may rejoin raids\n\n**Reason:** ${reason}\n\n*The gods show compassion.*`
+        `🌟 **DIVINE MERCY GRANTED** 🌟\n\n@${targetIdentifier} has been pardoned and may rejoin raids\n\n**Reason:** ${reason}\n\n*The gods show compassion.*`,
       );
 
-      logger.info(`User ${targetIdentifier} unbanned by ${moderatorUsername}: ${reason}`);
+      logger.info(
+        `User ${targetIdentifier} unbanned by ${moderatorUsername}: ${reason}`,
+      );
       return `✅ User @${targetIdentifier} has been unbanned and may rejoin raids.`;
-
     } catch (error) {
       logger.error("Failed to unban raider:", error);
       return "❌ Failed to unban user. Please try again.";
@@ -261,14 +298,14 @@ export class RaidModerationService {
     args: string[],
     moderatorId: string,
     moderatorUsername: string,
-    channelId: string
+    channelId: string,
   ): Promise<string> {
     if (args.length < 2) {
       return "❌ Usage: /warnraider [username/userid] [warning message]";
     }
 
-    const targetIdentifier = args[0].replace('@', '');
-    const warning = args.slice(1).join(' ');
+    const targetIdentifier = args[0].replace("@", "");
+    const warning = args.slice(1).join(" ");
 
     try {
       const targetUserId = await this.findUserIdByIdentifier(targetIdentifier);
@@ -279,7 +316,7 @@ export class RaidModerationService {
       // Log warning
       await this.logModerationAction({
         id: `mod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        actionType: 'warn',
+        actionType: "warn",
         targetUserId,
         moderatorId,
         reason: warning,
@@ -290,12 +327,13 @@ export class RaidModerationService {
       // Send warning notification
       await this.sendModerationNotification(
         channelId,
-        `⚠️ **DIVINE WARNING** ⚠️\n\n@${targetIdentifier}, the gods have issued a warning:\n\n**${warning}**\n\n*Consider this divine guidance to improve your raid conduct.*`
+        `⚠️ **DIVINE WARNING** ⚠️\n\n@${targetIdentifier}, the gods have issued a warning:\n\n**${warning}**\n\n*Consider this divine guidance to improve your raid conduct.*`,
       );
 
-      logger.info(`Warning issued to ${targetIdentifier} by ${moderatorUsername}: ${warning}`);
+      logger.info(
+        `Warning issued to ${targetIdentifier} by ${moderatorUsername}: ${warning}`,
+      );
       return `✅ Warning issued to @${targetIdentifier}.`;
-
     } catch (error) {
       logger.error("Failed to warn raider:", error);
       return "❌ Failed to issue warning. Please try again.";
@@ -305,13 +343,13 @@ export class RaidModerationService {
   private async handleRaiderStatus(
     args: string[],
     moderatorId: string,
-    channelId: string
+    channelId: string,
   ): Promise<string> {
     if (args.length < 1) {
       return "❌ Usage: /raiderstatus [username/userid]";
     }
 
-    const targetIdentifier = args[0].replace('@', '');
+    const targetIdentifier = args[0].replace("@", "");
 
     try {
       const targetUserId = await this.findUserIdByIdentifier(targetIdentifier);
@@ -338,23 +376,22 @@ export class RaidModerationService {
       message += `🏆 Total Points: ${userStats.totalPoints || 0}\n`;
       message += `⚔️ Raids Participated: ${userStats.raidsParticipated || 0}\n`;
       message += `🥇 Best Raid Score: ${userStats.bestRaidScore || 0}\n`;
-      message += `📈 Current Rank: #${userStats.rank || 'Unranked'}\n`;
+      message += `📈 Current Rank: #${userStats.rank || "Unranked"}\n`;
 
       // Get recent moderation actions
       const recentActions = this.moderationLog
-        .filter(action => action.targetUserId === targetUserId)
+        .filter((action) => action.targetUserId === targetUserId)
         .slice(-3)
         .reverse();
 
       if (recentActions.length > 0) {
         message += `\n**RECENT MODERATION:**\n`;
-        recentActions.forEach(action => {
+        recentActions.forEach((action) => {
           message += `• ${action.actionType.toUpperCase()}: ${action.reason} (${action.timestamp.toLocaleDateString()})\n`;
         });
       }
 
       return message;
-
     } catch (error) {
       logger.error("Failed to get raider status:", error);
       return "❌ Failed to retrieve raider status. Please try again.";
@@ -365,7 +402,7 @@ export class RaidModerationService {
     args: string[],
     moderatorId: string,
     moderatorUsername: string,
-    channelId: string
+    channelId: string,
   ): Promise<string> {
     if (!this.isAdmin(moderatorId)) {
       return "🚫 Only divine administrators may reset raids.";
@@ -387,16 +424,16 @@ export class RaidModerationService {
       await this.chatLockManager.unlockChat(
         channelId,
         moderatorId,
-        "🔄 Raid reset by divine administration"
+        "🔄 Raid reset by divine administration",
       );
 
       // Log action
       await this.logModerationAction({
         id: `mod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        actionType: 'reset_raid',
-        targetUserId: 'system',
+        actionType: "reset_raid",
+        targetUserId: "system",
         moderatorId,
-        reason: 'Raid manually reset',
+        reason: "Raid manually reset",
         timestamp: new Date(),
         channelId,
         raidId: channelRaid.id,
@@ -404,11 +441,10 @@ export class RaidModerationService {
 
       await this.sendModerationNotification(
         channelId,
-        `🔄 **RAID RESET** 🔄\n\nRaid ${channelRaid.id.substring(0, 8)}... has been reset by @${moderatorUsername}\n\n*Divine slate wiped clean. Prepare for the next mission.*`
+        `🔄 **RAID RESET** 🔄\n\nRaid ${channelRaid.id.substring(0, 8)}... has been reset by @${moderatorUsername}\n\n*Divine slate wiped clean. Prepare for the next mission.*`,
       );
 
       return `✅ Raid ${channelRaid.id.substring(0, 8)}... has been reset.`;
-
     } catch (error) {
       logger.error("Failed to reset raid:", error);
       return "❌ Failed to reset raid. Please try again.";
@@ -418,7 +454,7 @@ export class RaidModerationService {
   private async handleForceUnlock(
     moderatorId: string,
     moderatorUsername: string,
-    channelId: string
+    channelId: string,
   ): Promise<string> {
     if (!this.isAdmin(moderatorId)) {
       return "🚫 Only divine administrators may force unlock chats.";
@@ -428,7 +464,7 @@ export class RaidModerationService {
       const success = await this.chatLockManager.unlockChat(
         channelId,
         moderatorId,
-        "🔓 Chat force unlocked by divine administration"
+        "🔓 Chat force unlocked by divine administration",
       );
 
       if (!success) {
@@ -438,16 +474,15 @@ export class RaidModerationService {
       // Log action
       await this.logModerationAction({
         id: `mod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        actionType: 'force_unlock',
-        targetUserId: 'system',
+        actionType: "force_unlock",
+        targetUserId: "system",
         moderatorId,
-        reason: 'Chat force unlocked',
+        reason: "Chat force unlocked",
         timestamp: new Date(),
         channelId,
       });
 
       return `✅ Chat has been force unlocked by divine decree.`;
-
     } catch (error) {
       logger.error("Failed to force unlock:", error);
       return "❌ Failed to force unlock chat. Please try again.";
@@ -458,7 +493,7 @@ export class RaidModerationService {
     args: string[],
     moderatorId: string,
     moderatorUsername: string,
-    channelId: string
+    channelId: string,
   ): Promise<string> {
     if (!this.isAdmin(moderatorId)) {
       return "🚫 Only divine administrators may clear points.";
@@ -468,8 +503,8 @@ export class RaidModerationService {
       return "❌ Usage: /clearpoints [username/userid] [optional reason]";
     }
 
-    const targetIdentifier = args[0].replace('@', '');
-    const reason = args.slice(1).join(' ') || 'Points cleared by admin';
+    const targetIdentifier = args[0].replace("@", "");
+    const reason = args.slice(1).join(" ") || "Points cleared by admin";
 
     try {
       const targetUserId = await this.findUserIdByIdentifier(targetIdentifier);
@@ -481,7 +516,7 @@ export class RaidModerationService {
       // For now, log the action
       await this.logModerationAction({
         id: `mod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        actionType: 'clear_points',
+        actionType: "clear_points",
         targetUserId,
         moderatorId,
         reason,
@@ -491,11 +526,10 @@ export class RaidModerationService {
 
       await this.sendModerationNotification(
         channelId,
-        `🧹 **DIVINE RESET** 🧹\n\n@${targetIdentifier}'s points have been cleared by @${moderatorUsername}\n\n**Reason:** ${reason}\n\n*The slate is wiped clean.*`
+        `🧹 **DIVINE RESET** 🧹\n\n@${targetIdentifier}'s points have been cleared by @${moderatorUsername}\n\n**Reason:** ${reason}\n\n*The slate is wiped clean.*`,
       );
 
       return `✅ Points cleared for @${targetIdentifier}.`;
-
     } catch (error) {
       logger.error("Failed to clear points:", error);
       return "❌ Failed to clear points. Please try again.";
@@ -505,7 +539,7 @@ export class RaidModerationService {
   private async handleModerationLog(
     args: string[],
     moderatorId: string,
-    channelId: string
+    channelId: string,
   ): Promise<string> {
     const limit = args[0] ? parseInt(args[0]) : 10;
     const recentActions = this.moderationLog.slice(-limit).reverse();
@@ -527,7 +561,10 @@ export class RaidModerationService {
     return message;
   }
 
-  private async handleBannedList(moderatorId: string, channelId: string): Promise<string> {
+  private async handleBannedList(
+    moderatorId: string,
+    channelId: string,
+  ): Promise<string> {
     const banned = Array.from(this.bannedUsers.values());
 
     if (banned.length === 0) {
@@ -536,7 +573,8 @@ export class RaidModerationService {
 
     let message = `🚫 **BANNED RAIDERS** (${banned.length})\n\n`;
 
-    banned.slice(0, 20).forEach((ban, index) => { // Limit to 20 for message length
+    banned.slice(0, 20).forEach((ban, index) => {
+      // Limit to 20 for message length
       message += `${index + 1}. @${ban.username}\n`;
       message += `   Banned: ${ban.bannedAt.toLocaleDateString()}\n`;
       message += `   Reason: ${ban.reason}\n\n`;
@@ -551,13 +589,17 @@ export class RaidModerationService {
 
   async isUserBanned(userId: string): Promise<boolean> {
     const bannedUser = this.bannedUsers.get(userId);
-    
+
     if (!bannedUser) {
       return false;
     }
 
     // Check if temporary ban has expired
-    if (bannedUser.banType === 'temporary' && bannedUser.expiresAt && bannedUser.expiresAt < new Date()) {
+    if (
+      bannedUser.banType === "temporary" &&
+      bannedUser.expiresAt &&
+      bannedUser.expiresAt < new Date()
+    ) {
       await this.removeBannedRaider(userId);
       this.bannedUsers.delete(userId);
       return false;
@@ -566,7 +608,9 @@ export class RaidModerationService {
     return true;
   }
 
-  private async findUserIdByIdentifier(identifier: string): Promise<string | null> {
+  private async findUserIdByIdentifier(
+    identifier: string,
+  ): Promise<string | null> {
     // This would require a proper user lookup system
     // For now, assume the identifier is the user ID if it's numeric
     if (/^\d+$/.test(identifier)) {
@@ -580,21 +624,26 @@ export class RaidModerationService {
 
   private async logModerationAction(action: ModerationAction): Promise<void> {
     this.moderationLog.push(action);
-    
+
     // Keep only last 1000 actions in memory
     if (this.moderationLog.length > 1000) {
       this.moderationLog = this.moderationLog.slice(-1000);
     }
 
     // Save to database
-    logger.info(`Moderation action logged: ${action.actionType} on ${action.targetUserId} by ${action.moderatorId}`);
+    logger.info(
+      `Moderation action logged: ${action.actionType} on ${action.targetUserId} by ${action.moderatorId}`,
+    );
   }
 
-  private async sendModerationNotification(channelId: string, message: string): Promise<void> {
+  private async sendModerationNotification(
+    channelId: string,
+    message: string,
+  ): Promise<void> {
     try {
       if (this.telegramClient && this.telegramClient.sendMessage) {
         await this.telegramClient.sendMessage(channelId, message, {
-          parse_mode: 'Markdown'
+          parse_mode: "Markdown",
         });
       }
     } catch (error) {

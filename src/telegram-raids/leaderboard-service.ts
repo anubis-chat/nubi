@@ -28,16 +28,16 @@ export class LeaderboardService {
 
   // Pyramid-specific titles (active immediately)
   private pyramidTitles = {
-    architect: "🔺 Pyramid Architect",    // Top referrer
-    pharaoh: "👑 Divine Pharaoh",         // Largest network
-    allSeeing: "👁️ All-Seeing Eye",       // Most active network
-    sacredVessel: "⚱️ Sacred Vessel",      // Best conversion rate
-    divineBuilder: "🏗️ Divine Builder",    // 50+ referrals
-    ascendedOne: "✨ The Ascended",       // 100+ network
-    hierophant: "📜 Hierophant",          // Teaching/helping others
-    obelisk: "🗿 Living Obelisk",         // Longest active streak
+    architect: "🔺 Pyramid Architect", // Top referrer
+    pharaoh: "👑 Divine Pharaoh", // Largest network
+    allSeeing: "👁️ All-Seeing Eye", // Most active network
+    sacredVessel: "⚱️ Sacred Vessel", // Best conversion rate
+    divineBuilder: "🏗️ Divine Builder", // 50+ referrals
+    ascendedOne: "✨ The Ascended", // 100+ network
+    hierophant: "📜 Hierophant", // Teaching/helping others
+    obelisk: "🗿 Living Obelisk", // Longest active streak
     sphinxWhisperer: "🦁 Sphinx Whisperer", // Mystery achiever
-    pyramidPioneer: "🌟 Pyramid Pioneer",  // Early adopter
+    pyramidPioneer: "🌟 Pyramid Pioneer", // Early adopter
   };
 
   constructor(raidTracker: RaidTracker) {

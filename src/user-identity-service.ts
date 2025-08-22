@@ -490,7 +490,10 @@ export class UserIdentityService extends Service {
         ],
         (err) => {
           if (err) {
-            logger.error("Failed to save identity:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to save identity:",
+              err instanceof Error ? err.message : String(err),
+            );
             reject(err);
           } else {
             resolve();
@@ -512,7 +515,10 @@ export class UserIdentityService extends Service {
         [platform, platformUserId],
         (err, row: any) => {
           if (err) {
-            logger.error("Failed to get identity:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to get identity:",
+              err instanceof Error ? err.message : String(err),
+            );
             reject(err);
           } else if (row) {
             resolve({
@@ -545,7 +551,10 @@ export class UserIdentityService extends Service {
         [internalId],
         (err, row: any) => {
           if (err) {
-            logger.error("Failed to get identity by ID:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to get identity by ID:",
+              err instanceof Error ? err.message : String(err),
+            );
             reject(err);
           } else if (row) {
             resolve({
@@ -581,7 +590,10 @@ export class UserIdentityService extends Service {
         [excludePlatform],
         (err, rows: any[]) => {
           if (err) {
-            logger.error("Failed to find similar usernames:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to find similar usernames:",
+              err instanceof Error ? err.message : String(err),
+            );
             resolve([]);
           } else {
             // Filter by similarity score

@@ -27,7 +27,10 @@ export class VariableCollector {
 
     this.db = new Database(finalPath, (err) => {
       if (err) {
-        logger.error("Failed to open variable collector database:", err instanceof Error ? err.message : String(err));
+        logger.error(
+          "Failed to open variable collector database:",
+          err instanceof Error ? err.message : String(err),
+        );
         this.db = null;
       } else {
         logger.info("Variable collector database connected");
@@ -97,7 +100,10 @@ export class VariableCollector {
       await new Promise<void>((resolve, reject) => {
         this.db!.run(query, (err) => {
           if (err) {
-            logger.error("Failed to create table:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to create table:",
+              err instanceof Error ? err.message : String(err),
+            );
             reject(err);
           } else {
             resolve();
@@ -150,7 +156,10 @@ export class VariableCollector {
         [userId, name, valueStr, now, context, now, now],
         (err) => {
           if (err) {
-            logger.error("Failed to track variable:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to track variable:",
+              err instanceof Error ? err.message : String(err),
+            );
             reject(err);
           } else {
             resolve();
@@ -255,7 +264,10 @@ export class VariableCollector {
         ],
         (err) => {
           if (err) {
-            logger.error("Failed to save user preferences:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to save user preferences:",
+              err instanceof Error ? err.message : String(err),
+            );
             reject(err);
           } else {
             resolve();
@@ -304,7 +316,10 @@ export class VariableCollector {
         [name, count, JSON.stringify([sampleValue]), Date.now(), Date.now()],
         (err) => {
           if (err) {
-            logger.error("Failed to update common variable:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to update common variable:",
+              err instanceof Error ? err.message : String(err),
+            );
             reject(err);
           } else {
             resolve();
@@ -332,7 +347,10 @@ export class VariableCollector {
         [userId],
         (err, row: any) => {
           if (err) {
-            logger.error("Failed to get user preferences:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to get user preferences:",
+              err instanceof Error ? err.message : String(err),
+            );
             resolve(null);
           } else if (row) {
             const prefs: UserPreferences = {
@@ -379,7 +397,10 @@ export class VariableCollector {
         [userId, limit],
         (err, rows: any[]) => {
           if (err) {
-            logger.error("Failed to get user patterns:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to get user patterns:",
+              err instanceof Error ? err.message : String(err),
+            );
             resolve([]);
           } else {
             const patterns = rows.map((row) => ({
@@ -410,7 +431,10 @@ export class VariableCollector {
         [limit],
         (err, rows: any[]) => {
           if (err) {
-            logger.error("Failed to get common variables:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to get common variables:",
+              err instanceof Error ? err.message : String(err),
+            );
             resolve([]);
           } else {
             const variables = rows.map((row) => ({
@@ -455,7 +479,10 @@ export class VariableCollector {
         ],
         (err) => {
           if (err) {
-            logger.error("Failed to learn template:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to learn template:",
+              err instanceof Error ? err.message : String(err),
+            );
             reject(err);
           } else {
             resolve();
@@ -481,7 +508,10 @@ export class VariableCollector {
         [minSuccessRate],
         (err, rows: any[]) => {
           if (err) {
-            logger.error("Failed to get templates:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to get templates:",
+              err instanceof Error ? err.message : String(err),
+            );
             resolve([]);
           } else {
             const templates = rows.map((row) => ({
@@ -586,7 +616,10 @@ export class VariableCollector {
         [cutoff],
         (err) => {
           if (err) {
-            logger.error("Failed to cleanup old patterns:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Failed to cleanup old patterns:",
+              err instanceof Error ? err.message : String(err),
+            );
             reject(err);
           } else {
             logger.info("Cleaned up old variable patterns");
@@ -605,7 +638,10 @@ export class VariableCollector {
       await new Promise<void>((resolve) => {
         this.db!.close((err) => {
           if (err) {
-            logger.error("Error closing variable collector database:", err instanceof Error ? err.message : String(err));
+            logger.error(
+              "Error closing variable collector database:",
+              err instanceof Error ? err.message : String(err),
+            );
           }
           resolve();
         });

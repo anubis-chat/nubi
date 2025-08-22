@@ -43,12 +43,13 @@ export class UserInitiatedRaidFlow {
     chatLock: ChatLockConfig;
   };
   private userCooldowns: Map<string, number> = new Map();
-  private dailyInitiations: Map<string, { count: number; date: string }> = new Map();
+  private dailyInitiations: Map<string, { count: number; date: string }> =
+    new Map();
 
   constructor(
     runtime: IAgentRuntime,
     raidTracker: RaidTracker,
-    raidCoordinator: RaidCoordinator
+    raidCoordinator: RaidCoordinator,
   ) {
     this.runtime = runtime;
     this.raidTracker = raidTracker;
@@ -64,7 +65,7 @@ export class UserInitiatedRaidFlow {
       const configPath = path.join(
         process.cwd(),
         "config",
-        "anubis-raid-config.yaml"
+        "anubis-raid-config.yaml",
       );
       const configContent = fs.readFileSync(configPath, "utf8");
       const fullConfig = yaml.load(configContent) as any;
@@ -72,22 +73,42 @@ export class UserInitiatedRaidFlow {
       this.config = {
         userInitiated: {
           enabled: fullConfig.anubis_raid_bot.user_initiated?.enabled ?? true,
-          prophetMultiplier: fullConfig.anubis_raid_bot.user_initiated?.prophet_multiplier ?? 2.0,
-          autoCreateRaid: fullConfig.anubis_raid_bot.user_initiated?.auto_create_raid ?? true,
-          requireAdminApproval: fullConfig.anubis_raid_bot.user_initiated?.require_admin_approval ?? false,
-          cooldownMinutes: fullConfig.anubis_raid_bot.user_initiated?.cooldown_minutes ?? 5,
-          maxDailyInitiations: fullConfig.anubis_raid_bot.user_initiated?.max_daily_initiations ?? 10,
+          prophetMultiplier:
+            fullConfig.anubis_raid_bot.user_initiated?.prophet_multiplier ??
+            2.0,
+          autoCreateRaid:
+            fullConfig.anubis_raid_bot.user_initiated?.auto_create_raid ?? true,
+          requireAdminApproval:
+            fullConfig.anubis_raid_bot.user_initiated?.require_admin_approval ??
+            false,
+          cooldownMinutes:
+            fullConfig.anubis_raid_bot.user_initiated?.cooldown_minutes ?? 5,
+          maxDailyInitiations:
+            fullConfig.anubis_raid_bot.user_initiated?.max_daily_initiations ??
+            10,
         },
         chatLock: {
           enabled: fullConfig.anubis_raid_bot.chat_lock?.enabled ?? true,
           defaultTargets: {
-            likes: fullConfig.anubis_raid_bot.chat_lock?.default_targets?.likes ?? 25,
-            retweets: fullConfig.anubis_raid_bot.chat_lock?.default_targets?.retweets ?? 10,
-            comments: fullConfig.anubis_raid_bot.chat_lock?.default_targets?.comments ?? 5,
-            quotes: fullConfig.anubis_raid_bot.chat_lock?.default_targets?.quotes ?? 3,
+            likes:
+              fullConfig.anubis_raid_bot.chat_lock?.default_targets?.likes ??
+              25,
+            retweets:
+              fullConfig.anubis_raid_bot.chat_lock?.default_targets?.retweets ??
+              10,
+            comments:
+              fullConfig.anubis_raid_bot.chat_lock?.default_targets?.comments ??
+              5,
+            quotes:
+              fullConfig.anubis_raid_bot.chat_lock?.default_targets?.quotes ??
+              3,
           },
-          unlockConditions: fullConfig.anubis_raid_bot.chat_lock?.unlock_conditions ?? "all_targets",
-          progressUpdateInterval: fullConfig.anubis_raid_bot.chat_lock?.progress_update_interval ?? 30,
+          unlockConditions:
+            fullConfig.anubis_raid_bot.chat_lock?.unlock_conditions ??
+            "all_targets",
+          progressUpdateInterval:
+            fullConfig.anubis_raid_bot.chat_lock?.progress_update_interval ??
+            30,
         },
       };
 
@@ -140,7 +161,7 @@ export class UserInitiatedRaidFlow {
     userId: string,
     username: string,
     messageId: string,
-    channelId: string
+    channelId: string,
   ): Promise<void> {
     try {
       if (!this.config.userInitiated.enabled) {
@@ -152,7 +173,7 @@ export class UserInitiatedRaidFlow {
         messageText,
         userId,
         username,
-        messageId
+        messageId,
       );
 
       if (detectedLinks.length === 0) {
@@ -167,7 +188,7 @@ export class UserInitiatedRaidFlow {
             channelId,
             userId,
             username,
-            messageId
+            messageId,
           );
         }
       }
@@ -181,11 +202,11 @@ export class UserInitiatedRaidFlow {
     channelId: string,
     userId: string,
     username: string,
-    messageId: string
+    messageId: string,
   ): Promise<void> {
     try {
       // Check user eligibility
-      if (!await this.checkUserEligibility(userId, username, channelId)) {
+      if (!(await this.checkUserEligibility(userId, username, channelId))) {
         return;
       }
 
@@ -200,7 +221,7 @@ export class UserInitiatedRaidFlow {
           content: `User-initiated raid by @${username}`,
           timestamp: Date.now(),
         },
-        false // Not a test
+        false, // Not a test
       );
 
       // Record as user-initiated raid
@@ -209,7 +230,7 @@ export class UserInitiatedRaidFlow {
         userId,
         username,
         messageId,
-        detectedLink.originalUrl
+        detectedLink.originalUrl,
       );
 
       // Send prophet recognition message
@@ -217,7 +238,7 @@ export class UserInitiatedRaidFlow {
         channelId,
         username,
         tweetData.url,
-        raidId
+        raidId,
       );
 
       // Apply default chat lock if enabled
@@ -230,7 +251,6 @@ export class UserInitiatedRaidFlow {
       this.updateDailyInitiations(userId);
 
       logger.info(`User-initiated raid created: ${raidId} by @${username}`);
-
     } catch (error) {
       logger.error("Error handling user-initiated raid:", error);
     }
@@ -239,7 +259,7 @@ export class UserInitiatedRaidFlow {
   private async checkUserEligibility(
     userId: string,
     username: string,
-    channelId: string
+    channelId: string,
   ): Promise<boolean> {
     // Check if user is banned
     if (await this.isUserBanned(userId)) {
@@ -252,7 +272,7 @@ export class UserInitiatedRaidFlow {
       const remainingTime = this.getRemainingCooldown(userId);
       await this.sendMessage(
         channelId,
-        `🕐 @${username}, the gods require patience. You may initiate another raid in ${Math.ceil(remainingTime / 60000)} minutes.`
+        `🕐 @${username}, the gods require patience. You may initiate another raid in ${Math.ceil(remainingTime / 60000)} minutes.`,
       );
       return false;
     }
@@ -261,7 +281,7 @@ export class UserInitiatedRaidFlow {
     if (this.hasExceededDailyLimit(userId)) {
       await this.sendMessage(
         channelId,
-        `📋 @${username}, you've reached your divine quota of ${this.config.userInitiated.maxDailyInitiations} raid initiations today. The cosmos appreciates your enthusiasm!`
+        `📋 @${username}, you've reached your divine quota of ${this.config.userInitiated.maxDailyInitiations} raid initiations today. The cosmos appreciates your enthusiasm!`,
       );
       return false;
     }
@@ -288,7 +308,7 @@ export class UserInitiatedRaidFlow {
     if (!lastInitiation) return 0;
 
     const cooldownMs = this.config.userInitiated.cooldownMinutes * 60 * 1000;
-    return Math.max(0, (lastInitiation + cooldownMs) - Date.now());
+    return Math.max(0, lastInitiation + cooldownMs - Date.now());
   }
 
   private hasExceededDailyLimit(userId: string): boolean {
@@ -322,7 +342,7 @@ export class UserInitiatedRaidFlow {
     userId: string,
     username: string,
     messageId: string,
-    originalUrl: string
+    originalUrl: string,
   ): Promise<void> {
     // This would insert into user_initiated_raids table
     logger.info(`Recording user-initiated raid: ${raidId} by ${username}`);
@@ -332,7 +352,7 @@ export class UserInitiatedRaidFlow {
     channelId: string,
     username: string,
     tweetUrl: string,
-    raidId: string
+    raidId: string,
   ): Promise<void> {
     const message = `🔺 **PROPHET ${username.toUpperCase()} HAS SPOKEN** 🔺
 
@@ -356,14 +376,14 @@ React with ⚔️ to join this sacred mission!
   private async applyDefaultChatLock(
     channelId: string,
     raidId: string,
-    userId: string
+    userId: string,
   ): Promise<void> {
     // Set default targets
     await this.chatLockManager.setRaidTargets(
       raidId,
       channelId,
       this.config.chatLock.defaultTargets,
-      userId
+      userId,
     );
 
     // Lock the chat
@@ -371,7 +391,7 @@ React with ⚔️ to join this sacred mission!
       channelId,
       raidId,
       userId,
-      "🔒 Divine seals activated until engagement targets achieved"
+      "🔒 Divine seals activated until engagement targets achieved",
     );
   }
 
@@ -380,7 +400,7 @@ React with ⚔️ to join this sacred mission!
     userId: string,
     username: string,
     args: string[],
-    channelId: string
+    channelId: string,
   ): Promise<string> {
     // Check admin permissions for certain commands
     const isAdmin = this.chatLockManager.isAdmin(userId);
@@ -419,7 +439,7 @@ React with ⚔️ to join this sacred mission!
     args: string[],
     userId: string,
     channelId: string,
-    isAdmin: boolean
+    isAdmin: boolean,
   ): Promise<string> {
     if (!isAdmin) {
       return "🚫 Only divine administrators may set engagement targets.";
@@ -441,7 +461,7 @@ React with ⚔️ to join this sacred mission!
       activeRaid.id,
       channelId,
       { likes: target },
-      userId
+      userId,
     );
 
     return `✅ Likes target set to ${target} for current raid.`;
@@ -451,7 +471,7 @@ React with ⚔️ to join this sacred mission!
     args: string[],
     userId: string,
     channelId: string,
-    isAdmin: boolean
+    isAdmin: boolean,
   ): Promise<string> {
     if (!isAdmin) {
       return "🚫 Only divine administrators may set engagement targets.";
@@ -471,7 +491,7 @@ React with ⚔️ to join this sacred mission!
       activeRaid.id,
       channelId,
       { retweets: target },
-      userId
+      userId,
     );
 
     return `✅ Retweets target set to ${target} for current raid.`;
@@ -481,7 +501,7 @@ React with ⚔️ to join this sacred mission!
     args: string[],
     userId: string,
     channelId: string,
-    isAdmin: boolean
+    isAdmin: boolean,
   ): Promise<string> {
     if (!isAdmin) {
       return "🚫 Only divine administrators may set engagement targets.";
@@ -501,7 +521,7 @@ React with ⚔️ to join this sacred mission!
       activeRaid.id,
       channelId,
       { comments: target },
-      userId
+      userId,
     );
 
     return `✅ Comments target set to ${target} for current raid.`;
@@ -511,7 +531,7 @@ React with ⚔️ to join this sacred mission!
     args: string[],
     userId: string,
     channelId: string,
-    isAdmin: boolean
+    isAdmin: boolean,
   ): Promise<string> {
     if (!isAdmin) {
       return "🚫 Only divine administrators may set engagement targets.";
@@ -531,7 +551,7 @@ React with ⚔️ to join this sacred mission!
       activeRaid.id,
       channelId,
       { quotetweets: target },
-      userId
+      userId,
     );
 
     return `✅ Quote tweets target set to ${target} for current raid.`;
@@ -540,7 +560,7 @@ React with ⚔️ to join this sacred mission!
   private async handleLockRaid(
     userId: string,
     channelId: string,
-    isAdmin: boolean
+    isAdmin: boolean,
   ): Promise<string> {
     if (!isAdmin) {
       return "🚫 Only divine administrators may lock/unlock the realm.";
@@ -555,7 +575,7 @@ React with ⚔️ to join this sacred mission!
       channelId,
       activeRaid.id,
       userId,
-      "🔒 Chat manually locked by divine administration"
+      "🔒 Chat manually locked by divine administration",
     );
 
     return success
@@ -566,7 +586,7 @@ React with ⚔️ to join this sacred mission!
   private async handleUnlockRaid(
     userId: string,
     channelId: string,
-    isAdmin: boolean
+    isAdmin: boolean,
   ): Promise<string> {
     if (!isAdmin) {
       return "🚫 Only divine administrators may lock/unlock the realm.";
@@ -575,7 +595,7 @@ React with ⚔️ to join this sacred mission!
     const success = await this.chatLockManager.unlockChat(
       channelId,
       userId,
-      "🔓 Chat manually unlocked by divine administration"
+      "🔓 Chat manually unlocked by divine administration",
     );
 
     return success
@@ -599,7 +619,7 @@ React with ⚔️ to join this sacred mission!
       message += `👍 Likes: ${lockState.progress.likes}/${lockState.targets.likes}\n`;
       message += `🔄 Retweets: ${lockState.progress.retweets}/${lockState.targets.retweets}\n`;
       message += `💬 Comments: ${lockState.progress.comments}/${lockState.targets.comments}\n`;
-      
+
       if (lockState.targets.quotetweets && lockState.targets.quotetweets > 0) {
         message += `📝 Quotes: ${lockState.progress.quotetweets}/${lockState.targets.quotetweets}\n`;
       }
@@ -608,7 +628,7 @@ React with ⚔️ to join this sacred mission!
     }
 
     const stats = await this.raidTracker.getRaidStats(activeRaid.id);
-    message += `\n\n👥 Raiders: ${stats.totalParticipants}\n🏆 Top: @${stats.topRaider?.username || 'None'}\n⚡ Total Points: ${stats.totalPoints}`;
+    message += `\n\n👥 Raiders: ${stats.totalParticipants}\n🏆 Top: @${stats.topRaider?.username || "None"}\n⚡ Total Points: ${stats.totalPoints}`;
 
     return message;
   }
@@ -616,7 +636,7 @@ React with ⚔️ to join this sacred mission!
   private async handleResetRaid(
     userId: string,
     channelId: string,
-    isAdmin: boolean
+    isAdmin: boolean,
   ): Promise<string> {
     if (!isAdmin) {
       return "🚫 Only divine administrators may reset raids.";
@@ -634,7 +654,7 @@ React with ⚔️ to join this sacred mission!
     await this.chatLockManager.unlockChat(
       channelId,
       userId,
-      "🔄 Raid reset by divine administration"
+      "🔄 Raid reset by divine administration",
     );
 
     return `✅ Raid ${activeRaid.id.substring(0, 8)}... has been reset and chat unlocked.`;
@@ -651,7 +671,7 @@ React with ⚔️ to join this sacred mission!
     try {
       if (this.telegramClient && this.telegramClient.sendMessage) {
         await this.telegramClient.sendMessage(channelId, message, {
-          parse_mode: 'Markdown'
+          parse_mode: "Markdown",
         });
       }
     } catch (error) {

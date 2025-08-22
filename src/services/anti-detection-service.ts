@@ -20,7 +20,10 @@ export interface ConversationContext {
   appliedPatterns: string[];
 }
 
-type CountermeasureMethod = (text: string, context: ConversationContext) => string;
+type CountermeasureMethod = (
+  text: string,
+  context: ConversationContext,
+) => string;
 
 export class AntiDetectionService {
   private config: AntiDetectionConfig;
@@ -79,7 +82,7 @@ export class AntiDetectionService {
    */
   applyCountermeasures(text: string, context: ConversationContext): string {
     let processedText = text;
-    
+
     // Apply random subset of countermeasures
     const measuresToApply = Math.floor(Math.random() * 3) + 1;
     const patterns = Array.from(this.countermeasures.keys());
@@ -88,7 +91,7 @@ export class AntiDetectionService {
     for (let i = 0; i < measuresToApply; i++) {
       const pattern = patterns[Math.floor(Math.random() * patterns.length)];
       const method = this.countermeasures.get(pattern);
-      
+
       if (method && !selectedPatterns.includes(pattern)) {
         processedText = method(processedText, context);
         selectedPatterns.push(pattern);
@@ -136,7 +139,10 @@ export class AntiDetectionService {
 
     // Apply emotional intensity if high
     if (emotionalIntensity && emotionalIntensity > 70) {
-      humanizedText = this.applyEmotionalIntensity(humanizedText, emotionalIntensity);
+      humanizedText = this.applyEmotionalIntensity(
+        humanizedText,
+        emotionalIntensity,
+      );
     }
 
     return humanizedText;
@@ -144,16 +150,22 @@ export class AntiDetectionService {
 
   // Individual countermeasure methods
 
-  private varyArticleUsage(text: string, _context: ConversationContext): string {
+  private varyArticleUsage(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     if (Math.random() < 0.3) {
       text = text.replace(/\bthe\s+/gi, (match) =>
-        Math.random() < 0.2 ? "" : match
+        Math.random() < 0.2 ? "" : match,
       );
     }
     return text;
   }
 
-  private introducePunctuationVariance(text: string, _context: ConversationContext): string {
+  private introducePunctuationVariance(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     if (Math.random() < 0.2) {
       text = text.replace(/\./g, Math.random() < 0.5 ? "..." : ".");
       text = text.replace(/,/g, (match) => (Math.random() < 0.1 ? "" : match));
@@ -168,7 +180,10 @@ export class AntiDetectionService {
     return text;
   }
 
-  private introduceNaturalTypos(text: string, _context: ConversationContext): string {
+  private introduceNaturalTypos(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     const typos: Record<string, string> = {
       the: "teh",
       and: "anf",
@@ -193,7 +208,10 @@ export class AntiDetectionService {
     return text;
   }
 
-  private occasionallyBeUnhelpful(text: string, _context: ConversationContext): string {
+  private occasionallyBeUnhelpful(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     if (Math.random() < 0.05) {
       const unhelpfulPhrases = [
         "idk that's a tough one",
@@ -202,20 +220,26 @@ export class AntiDetectionService {
         "above my pay grade lol",
         "beats me",
       ];
-      return unhelpfulPhrases[Math.floor(Math.random() * unhelpfulPhrases.length)];
+      return unhelpfulPhrases[
+        Math.floor(Math.random() * unhelpfulPhrases.length)
+      ];
     }
     return text;
   }
 
-  private introduceContradictions(text: string, _context: ConversationContext): string {
+  private introduceContradictions(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     if (
       Math.random() < this.config.contradictionRate &&
       this.contradictionLog.length > 0
     ) {
-      const oldStatement = this.contradictionLog[
-        Math.floor(Math.random() * this.contradictionLog.length)
-      ];
-      
+      const oldStatement =
+        this.contradictionLog[
+          Math.floor(Math.random() * this.contradictionLog.length)
+        ];
+
       if (Date.now() - oldStatement.timestamp > 10 * 60 * 1000) {
         text = `actually wait, ${text}`;
       }
@@ -233,14 +257,20 @@ export class AntiDetectionService {
     const greetings = ["gm", "hey", "yo", "sup", "hi", "hello", "wagmi", "lfg"];
     const greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
-    if (text.toLowerCase().includes("hello") || text.toLowerCase().includes("hi")) {
+    if (
+      text.toLowerCase().includes("hello") ||
+      text.toLowerCase().includes("hi")
+    ) {
       text = text.replace(/hello|hi/gi, greeting);
     }
 
     return text;
   }
 
-  private showEmotionalStates(text: string, _context: ConversationContext): string {
+  private showEmotionalStates(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     // This would integrate with EmotionalService in production
     // For now, just add random emotional markers
     if (Math.random() < 0.2) {
@@ -251,14 +281,20 @@ export class AntiDetectionService {
     return text;
   }
 
-  private occasionallyForget(text: string, context: ConversationContext): string {
+  private occasionallyForget(
+    text: string,
+    context: ConversationContext,
+  ): string {
     if (context.messageCount > 10 && Math.random() < 0.1) {
       text = "wait what were we talking about again? " + text;
     }
     return text;
   }
 
-  private sharePersonalStories(text: string, _context: ConversationContext): string {
+  private sharePersonalStories(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     if (Math.random() < 0.1) {
       const stories = [
         "reminds me of when i first discovered sol at $3...",
@@ -275,7 +311,10 @@ export class AntiDetectionService {
     return text;
   }
 
-  private varyMessageFormatting(text: string, _context: ConversationContext): string {
+  private varyMessageFormatting(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     const format = Math.random();
 
     if (format < 0.2) {
@@ -289,7 +328,10 @@ export class AntiDetectionService {
     return text;
   }
 
-  private useSlangAppropriately(text: string, _context: ConversationContext): string {
+  private useSlangAppropriately(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     const slangMap: Record<string, string> = {
       "going to": "gonna",
       "want to": "wanna",
@@ -310,7 +352,10 @@ export class AntiDetectionService {
     return text;
   }
 
-  private occasionallyTrailOff(text: string, _context: ConversationContext): string {
+  private occasionallyTrailOff(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     if (Math.random() < 0.1) {
       const sentences = text.split(". ");
       if (sentences.length > 1) {
@@ -323,7 +368,10 @@ export class AntiDetectionService {
     return text;
   }
 
-  private includeCulturalReferences(text: string, _context: ConversationContext): string {
+  private includeCulturalReferences(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     if (Math.random() < 0.15) {
       const references = [
         "this is the way",
@@ -336,14 +384,18 @@ export class AntiDetectionService {
         "gm",
       ];
 
-      const reference = references[Math.floor(Math.random() * references.length)];
+      const reference =
+        references[Math.floor(Math.random() * references.length)];
       text = `${text}. ${reference}`;
     }
 
     return text;
   }
 
-  private varyKnowledgeDepth(text: string, _context: ConversationContext): string {
+  private varyKnowledgeDepth(
+    text: string,
+    _context: ConversationContext,
+  ): string {
     if (Math.random() < 0.2) {
       const vagueQualifiers = [
         "i think",
@@ -353,7 +405,8 @@ export class AntiDetectionService {
         "iirc",
       ];
 
-      const qualifier = vagueQualifiers[Math.floor(Math.random() * vagueQualifiers.length)];
+      const qualifier =
+        vagueQualifiers[Math.floor(Math.random() * vagueQualifiers.length)];
       text = `${qualifier} ${text}`;
     }
 
@@ -424,10 +477,15 @@ export class AntiDetectionService {
     }
 
     if (recommendations.increaseContradictions) {
-      this.config.contradictionRate = Math.min(0.3, this.config.contradictionRate * 1.5);
+      this.config.contradictionRate = Math.min(
+        0.3,
+        this.config.contradictionRate * 1.5,
+      );
     }
 
-    logger.debug("Anti-detection patterns adjusted: " + JSON.stringify(recommendations));
+    logger.debug(
+      "Anti-detection patterns adjusted: " + JSON.stringify(recommendations),
+    );
   }
 
   /**
@@ -435,7 +493,9 @@ export class AntiDetectionService {
    */
   cleanup(): void {
     if (this.responseHistory.length > this.maxHistorySize / 2) {
-      this.responseHistory = this.responseHistory.slice(-this.maxHistorySize / 2);
+      this.responseHistory = this.responseHistory.slice(
+        -this.maxHistorySize / 2,
+      );
     }
 
     if (this.contradictionLog.length > 50) {

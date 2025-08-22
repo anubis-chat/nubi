@@ -1,7 +1,7 @@
 {
   "name": "nubi",
   "description": "NUBI - The Symbiosis of Anubis - Advanced ElizaOS agent with personality system and Telegram raid coordination",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "dist/src/index.js",
   "module": "dist/src/index.js",
@@ -17,8 +17,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/anubis-chat/nubi"
   },
+  "author": "SYMLabs",
+  "license": "MIT",
   "exports": {
     "./package.json": "./package.json",
     ".": {
@@ -90,6 +92,7 @@
     "format": "prettier --write ./src",
     "format:check": "prettier --check ./src",
     "check-all": "bun run type-check && bun run format:check && bun run test",
+    "setup:telegram": "bun scripts/setup-telegram-bot.ts",
     "cy:open": "bun run test:install && cypress open",
     "cy:run": "bun run test:install && cypress run --component",
     "cy:test": "bun run test:install && cypress run --component --reporter spec",

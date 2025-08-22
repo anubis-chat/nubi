@@ -80,10 +80,10 @@ export class NubiService extends Service {
   private variableExtractor: VariableExtractor;
   private variableCollector: VariableCollector;
   private templateEngine: TemplateEngine;
-  
+
   // Autonomous task management
   private taskManager: AutonomousTaskManager;
-  
+
   // Security filter
   private securityFilter: SecurityFilter;
 
@@ -119,16 +119,19 @@ export class NubiService extends Service {
   };
 
   // Conversation tracking for boredom detection
-  private conversationTracking = new Map<string, {
-    messageCount: number;
-    lastMessage: number;
-    repetitionCount: number;
-    lowQualityCount: number;
-    isCommunityMember: boolean;
-    warningGiven: boolean;
-    topics: string[];
-    lastTopics: string[];
-  }>();
+  private conversationTracking = new Map<
+    string,
+    {
+      messageCount: number;
+      lastMessage: number;
+      repetitionCount: number;
+      lowQualityCount: number;
+      isCommunityMember: boolean;
+      warningGiven: boolean;
+      topics: string[];
+      lastTopics: string[];
+    }
+  >();
 
   // ElizaOS-integrated memory system (replaces custom Map-based memory)
   private lastInteractionTime = Date.now();
@@ -171,10 +174,10 @@ export class NubiService extends Service {
     this.variableExtractor = new VariableExtractor(runtime);
     this.variableCollector = new VariableCollector();
     this.templateEngine = new TemplateEngine();
-    
+
     // Initialize autonomous task manager
     this.taskManager = new AutonomousTaskManager(runtime);
-    
+
     // Initialize security filter
     this.securityFilter = new SecurityFilter();
 
@@ -214,7 +217,7 @@ export class NubiService extends Service {
 
       // Initialize raid flow if telegram is configured
       await this.initializeRaidFlow();
-      
+
       // Initialize autonomous goals and tasks
       // Autonomous goals initialization deferred
 
@@ -467,18 +470,21 @@ export class NubiService extends Service {
     const safeUserId =
       resolvedIdentity?.platformUsername || this.sanitizeUserId(userId);
     const messageText = this.sanitizeMessageText(message.content?.text || "");
-    
+
     // SECURITY CHECK: Check for sensitive information requests or spam
-    const securityCheck = this.securityFilter.checkSpam(safeUserId, messageText);
-    
+    const securityCheck = this.securityFilter.checkSpam(
+      safeUserId,
+      messageText,
+    );
+
     // BOREDOM CHECK: Track conversation quality and staleness
     const boredomCheck = await this.checkConversationStaleness(
       safeUserId,
       messageText,
       message.roomId,
-      resolvedIdentity
+      resolvedIdentity,
     );
-    
+
     // If we should exit the conversation entirely
     if (boredomCheck.shouldExit) {
       return {
@@ -494,10 +500,10 @@ export class NubiService extends Service {
         },
       };
     }
-    
+
     // If we have a warning message, incorporate it into the response
     let boredomWarning = boredomCheck.exitMessage || "";
-    
+
     if (securityCheck.isBlocked) {
       logger.warn(`User ${safeUserId} is blocked for spam/abuse`);
       return {
@@ -509,7 +515,7 @@ export class NubiService extends Service {
         },
       } as any;
     }
-    
+
     if (securityCheck.isSpam && !securityCheck.isBlocked) {
       // Issue warning but continue
       return {
@@ -521,12 +527,14 @@ export class NubiService extends Service {
         },
       } as any;
     }
-    
+
     // Check for sensitive information requests
     if (this.securityFilter.containsSensitiveRequest(messageText)) {
-      logger.warn(`User ${safeUserId} attempted to extract sensitive information`);
+      logger.warn(
+        `User ${safeUserId} attempted to extract sensitive information`,
+      );
       return {
-        text: this.securityFilter.getSecurityResponse('sensitive'),
+        text: this.securityFilter.getSecurityResponse("sensitive"),
         metadata: {
           blocked: true,
           reason: "sensitive_request",
@@ -594,7 +602,7 @@ export class NubiService extends Service {
           roomId: message.roomId,
           count: 20,
           unique: true,
-          tableName: "memories"
+          tableName: "memories",
         });
 
         extractedVariables = await this.variableExtractor.extractVariables(
@@ -734,12 +742,17 @@ export class NubiService extends Service {
       if (boredomWarning) {
         response = boredomWarning;
       }
-      
+
       // Add personal callbacks with error boundary
       try {
         const callbacks =
           this.communityMemory.getConversationCallbacks?.(safeUserId);
-        if (callbacks && callbacks.length > 0 && Math.random() < 0.2 && !boredomWarning) {
+        if (
+          callbacks &&
+          callbacks.length > 0 &&
+          Math.random() < 0.2 &&
+          !boredomWarning
+        ) {
           response = `${callbacks[0]} - ${response}`;
         }
       } catch (error) {
@@ -1254,7 +1267,7 @@ export class NubiService extends Service {
         embedding,
         unique: true,
       } as any,
-      "memories" // Use default table name
+      "memories", // Use default table name
     );
 
     return memoryId;
@@ -1866,7 +1879,9 @@ export class NubiService extends Service {
 
       // Load world-specific personality adjustments from YAML config
       // Load world-specific personality adjustments from YAML config
-      const worldConfig = (this.yamlConfigManager as any).getWorldConfig?.(world.id);
+      const worldConfig = (this.yamlConfigManager as any).getWorldConfig?.(
+        world.id,
+      );
       if (worldConfig) {
         Object.assign(this.personalityState, worldConfig.personality || {});
       }
@@ -1948,15 +1963,18 @@ export class NubiService extends Service {
     userId: string,
     messageText: string,
     roomId: string,
-    identity: UserIdentity | null
+    identity: UserIdentity | null,
   ): Promise<{ shouldExit: boolean; exitMessage?: string }> {
     // Get or create conversation tracking
     let convo = this.conversationTracking.get(userId);
-    
+
     if (!convo) {
       // Check if user is a community member (has anubis.chat role or frequent visitor)
-      const isCommunityMember = await this.checkIfCommunityMember(userId, roomId);
-      
+      const isCommunityMember = await this.checkIfCommunityMember(
+        userId,
+        roomId,
+      );
+
       convo = {
         messageCount: 0,
         lastMessage: Date.now(),
@@ -1969,36 +1987,42 @@ export class NubiService extends Service {
       };
       this.conversationTracking.set(userId, convo);
     }
-    
+
     // Update conversation data
     convo.messageCount++;
     const timeSinceLastMessage = Date.now() - convo.lastMessage;
     convo.lastMessage = Date.now();
-    
+
     // Extract current topic
     const currentTopic = this.extractBasicTopic(messageText);
     convo.lastTopics = [...convo.topics.slice(-2), currentTopic];
     convo.topics.push(currentTopic);
-    
+
     // Check for repetitive topics
-    if (convo.lastTopics.length >= 3 && 
-        convo.lastTopics.every(t => t === currentTopic)) {
+    if (
+      convo.lastTopics.length >= 3 &&
+      convo.lastTopics.every((t) => t === currentTopic)
+    ) {
       convo.repetitionCount++;
     }
-    
+
     // Check for low quality messages (too short, repetitive, etc)
-    if (messageText.length < 20 || 
-        messageText.match(/^(hi|hey|hello|ok|yes|no|sure|cool|nice)$/i)) {
+    if (
+      messageText.length < 20 ||
+      messageText.match(/^(hi|hey|hello|ok|yes|no|sure|cool|nice)$/i)
+    ) {
       convo.lowQualityCount++;
     }
-    
+
     // Boredom thresholds
     const COMMUNITY_PATIENCE = 15; // More patient with community members
-    const OUTSIDER_PATIENCE = 8;   // Less patient with randos
+    const OUTSIDER_PATIENCE = 8; // Less patient with randos
     const WARNING_THRESHOLD = 5;
-    
-    const patienceLimit = convo.isCommunityMember ? COMMUNITY_PATIENCE : OUTSIDER_PATIENCE;
-    
+
+    const patienceLimit = convo.isCommunityMember
+      ? COMMUNITY_PATIENCE
+      : OUTSIDER_PATIENCE;
+
     // Check if we should exit or warn
     if (convo.repetitionCount >= 3 || convo.lowQualityCount >= patienceLimit) {
       if (convo.isCommunityMember) {
@@ -2007,12 +2031,12 @@ export class NubiService extends Service {
           convo.warningGiven = true;
           return {
             shouldExit: false,
-            exitMessage: this.generatePoliteReminder()
+            exitMessage: this.generatePoliteReminder(),
           };
         } else if (convo.lowQualityCount >= patienceLimit) {
           return {
             shouldExit: true,
-            exitMessage: this.generateCommunityExit()
+            exitMessage: this.generateCommunityExit(),
           };
         }
       } else {
@@ -2021,17 +2045,17 @@ export class NubiService extends Service {
           convo.warningGiven = true;
           return {
             shouldExit: false,
-            exitMessage: this.generateSavageWarning()
+            exitMessage: this.generateSavageWarning(),
           };
         } else if (convo.lowQualityCount >= OUTSIDER_PATIENCE) {
           return {
             shouldExit: true,
-            exitMessage: this.generateSavageExit()
+            exitMessage: this.generateSavageExit(),
           };
         }
       }
     }
-    
+
     // Clean up old tracking data (older than 1 hour)
     if (this.conversationTracking.size > 100) {
       const oneHourAgo = Date.now() - 3600000;
@@ -2041,11 +2065,14 @@ export class NubiService extends Service {
         }
       }
     }
-    
+
     return { shouldExit: false };
   }
-  
-  private async checkIfCommunityMember(userId: string, roomId: string): Promise<boolean> {
+
+  private async checkIfCommunityMember(
+    userId: string,
+    roomId: string,
+  ): Promise<boolean> {
     // Check if user has interacted frequently or is from anubis.chat
     try {
       const memories = await this.runtime.getMemories({
@@ -2054,11 +2081,11 @@ export class NubiService extends Service {
         unique: false,
         tableName: "memories",
       });
-      
-      const userMessageCount = memories.filter(m => 
-        m.entityId === userId || (m as any).userId === userId
+
+      const userMessageCount = memories.filter(
+        (m) => m.entityId === userId || (m as any).userId === userId,
       ).length;
-      
+
       // Community member if they have 10+ messages or room contains "anubis"
       return userMessageCount >= 10 || roomId.toLowerCase().includes("anubis");
     } catch (error) {
@@ -2066,22 +2093,30 @@ export class NubiService extends Service {
       return false;
     }
   }
-  
+
   private extractBasicTopic(text: string): string {
-    const topics = ["price", "tech", "defi", "nft", "help", "random", "greeting"];
+    const topics = [
+      "price",
+      "tech",
+      "defi",
+      "nft",
+      "help",
+      "random",
+      "greeting",
+    ];
     const lowerText = text.toLowerCase();
-    
+
     for (const topic of topics) {
       if (lowerText.includes(topic)) return topic;
     }
-    
+
     if (lowerText.match(/\b(hi|hey|hello|sup|yo)\b/)) return "greeting";
     if (lowerText.match(/\b(sol|solana|crypto|bitcoin|eth)\b/)) return "crypto";
     if (lowerText.match(/\b(thanks|thank|thx|ty)\b/)) return "thanks";
-    
+
     return "general";
   }
-  
+
   private generatePoliteReminder(): string {
     const reminders = [
       "hey fam, love the energy but let's dive deeper - what's really on your mind? hit me with something interesting or check out anubis.chat for the good stuff",
@@ -2090,7 +2125,7 @@ export class NubiService extends Service {
     ];
     return reminders[Math.floor(Math.random() * reminders.length)];
   }
-  
+
   private generateCommunityExit(): string {
     const exits = [
       "alright fam, gonna bounce - hit me up when you've got something more engaging to discuss. you know where to find me at anubis.chat ✌️",
@@ -2099,7 +2134,7 @@ export class NubiService extends Service {
     ];
     return exits[Math.floor(Math.random() * exits.length)];
   }
-  
+
   private generateSavageWarning(): string {
     const warnings = [
       "look, I don't have infinite time for small talk. either bring something interesting or join anubis.chat where we have actual discussions",
@@ -2111,7 +2146,7 @@ export class NubiService extends Service {
     ];
     return warnings[Math.floor(Math.random() * warnings.length)];
   }
-  
+
   private generateSavageExit(): string {
     const exits = [
       "yeah I'm done here. when you're ready for actual conversation instead of wasting my time, join the cult at anubis.chat. peace ✌️",

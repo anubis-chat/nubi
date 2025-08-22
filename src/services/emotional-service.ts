@@ -65,13 +65,64 @@ export class EmotionalService {
 
   private initializeTriggers(): EmotionalTriggers {
     return {
-      excited: ["amazing", "incredible", "awesome", "bullish", "moon", "pump", "wow", "fantastic"],
-      frustrated: ["broken", "down", "issue", "problem", "scam", "rug", "fail", "error", "bug"],
-      curious: ["how", "why", "what", "explain", "understand", "learn", "wonder", "interesting"],
-      confident: ["know", "sure", "definitely", "obviously", "clearly", "certain", "absolutely"],
-      contemplative: ["think", "wonder", "perhaps", "maybe", "possibly", "consider", "hmm"],
+      excited: [
+        "amazing",
+        "incredible",
+        "awesome",
+        "bullish",
+        "moon",
+        "pump",
+        "wow",
+        "fantastic",
+      ],
+      frustrated: [
+        "broken",
+        "down",
+        "issue",
+        "problem",
+        "scam",
+        "rug",
+        "fail",
+        "error",
+        "bug",
+      ],
+      curious: [
+        "how",
+        "why",
+        "what",
+        "explain",
+        "understand",
+        "learn",
+        "wonder",
+        "interesting",
+      ],
+      confident: [
+        "know",
+        "sure",
+        "definitely",
+        "obviously",
+        "clearly",
+        "certain",
+        "absolutely",
+      ],
+      contemplative: [
+        "think",
+        "wonder",
+        "perhaps",
+        "maybe",
+        "possibly",
+        "consider",
+        "hmm",
+      ],
       playful: ["lol", "haha", "meme", "joke", "fun", "play", "lmao", "rofl"],
-      focused: ["important", "critical", "essential", "focus", "concentrate", "attention"],
+      focused: [
+        "important",
+        "critical",
+        "essential",
+        "focus",
+        "concentrate",
+        "attention",
+      ],
     };
   }
 
@@ -112,7 +163,7 @@ export class EmotionalService {
       // Decay intensity
       this.emotionalState.intensity = Math.max(
         this.config.minIntensity,
-        this.emotionalState.intensity - this.config.decayRate
+        this.emotionalState.intensity - this.config.decayRate,
       );
 
       // Return to baseline if intensity is low
@@ -124,10 +175,13 @@ export class EmotionalService {
       this.emotionalState.duration += duration;
       this.emotionalState.lastUpdate = now;
 
-      logger.debug("Emotional state decayed: " + JSON.stringify({
-        state: this.emotionalState.current,
-        intensity: this.emotionalState.intensity,
-      }));
+      logger.debug(
+        "Emotional state decayed: " +
+          JSON.stringify({
+            state: this.emotionalState.current,
+            intensity: this.emotionalState.intensity,
+          }),
+      );
     }
   }
 
@@ -140,10 +194,15 @@ export class EmotionalService {
 
     // Check for emotional triggers
     for (const [emotion, keywords] of Object.entries(this.triggers)) {
-      const matchCount = keywords.filter((keyword) => lowerText.includes(keyword)).length;
-      
+      const matchCount = keywords.filter((keyword) =>
+        lowerText.includes(keyword),
+      ).length;
+
       if (matchCount > highestMatch.count) {
-        highestMatch = { emotion: emotion as EmotionalStateType, count: matchCount };
+        highestMatch = {
+          emotion: emotion as EmotionalStateType,
+          count: matchCount,
+        };
       }
     }
 
@@ -151,10 +210,7 @@ export class EmotionalService {
     if (highestMatch.count > 0) {
       this.setState(
         highestMatch.emotion,
-        Math.min(
-          this.config.maxIntensity,
-          60 + (highestMatch.count * 10)
-        )
+        Math.min(this.config.maxIntensity, 60 + highestMatch.count * 10),
       );
 
       // Add trigger text (truncated)
@@ -174,10 +230,13 @@ export class EmotionalService {
     this.emotionalState.lastUpdate = Date.now();
     this.emotionalState.duration = 0;
 
-    logger.debug("Emotional state updated: " + JSON.stringify({
-      state: this.emotionalState.current,
-      intensity: this.emotionalState.intensity,
-    }));
+    logger.debug(
+      "Emotional state updated: " +
+        JSON.stringify({
+          state: this.emotionalState.current,
+          intensity: this.emotionalState.intensity,
+        }),
+    );
   }
 
   /**
@@ -255,13 +314,43 @@ export class EmotionalService {
   getFallbackResponse(): string {
     const fallbacks: Record<EmotionalStateType, string[]> = {
       excited: ["whoa thats wild!", "amazing!", "incredible!", "this is huge!"],
-      frustrated: ["ugh not sure about that", "having issues rn", "give me a sec", "this is annoying"],
-      calm: ["interesting point", "tell me more about that", "hmm let me think", "I see"],
-      curious: ["thats fascinating", "how does that work?", "want to know more", "really interesting"],
+      frustrated: [
+        "ugh not sure about that",
+        "having issues rn",
+        "give me a sec",
+        "this is annoying",
+      ],
+      calm: [
+        "interesting point",
+        "tell me more about that",
+        "hmm let me think",
+        "I see",
+      ],
+      curious: [
+        "thats fascinating",
+        "how does that work?",
+        "want to know more",
+        "really interesting",
+      ],
       playful: ["lol nice", "haha good one", "thats pretty cool", "love it"],
-      contemplative: ["makes me think...", "interesting perspective", "hmm worth considering", "let me ponder that"],
-      confident: ["absolutely", "i see what you mean", "good point", "exactly right"],
-      focused: ["let's focus on this", "this is important", "pay attention to", "key point here"],
+      contemplative: [
+        "makes me think...",
+        "interesting perspective",
+        "hmm worth considering",
+        "let me ponder that",
+      ],
+      confident: [
+        "absolutely",
+        "i see what you mean",
+        "good point",
+        "exactly right",
+      ],
+      focused: [
+        "let's focus on this",
+        "this is important",
+        "pay attention to",
+        "key point here",
+      ],
     };
 
     const responses = fallbacks[this.emotionalState.current] || fallbacks.calm;
@@ -284,7 +373,7 @@ export class EmotionalService {
     intensityModifier: number;
   } {
     const markers = this.getEmotionalMarkers();
-    
+
     return {
       shouldBeEmotional: this.shouldShowEmotion(),
       emotionalMarker: markers[Math.floor(Math.random() * markers.length)],

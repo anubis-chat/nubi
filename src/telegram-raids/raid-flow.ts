@@ -46,8 +46,16 @@ export class AnubisRaidFlow {
     this.leaderboardService = new LeaderboardService(this.raidTracker);
     this.chatLockManager = new ChatLockManager(runtime, this.raidTracker);
     this.engagementVerifier = new EngagementVerifier(runtime);
-    this.userInitiatedFlow = new UserInitiatedRaidFlow(runtime, this.raidTracker, this.raidCoordinator);
-    this.moderationService = new RaidModerationService(runtime, this.raidTracker, this.chatLockManager);
+    this.userInitiatedFlow = new UserInitiatedRaidFlow(
+      runtime,
+      this.raidTracker,
+      this.raidCoordinator,
+    );
+    this.moderationService = new RaidModerationService(
+      runtime,
+      this.raidTracker,
+      this.chatLockManager,
+    );
     this.loadConfig();
   }
 
@@ -116,7 +124,9 @@ export class AnubisRaidFlow {
   private setupCommandHandlers(): void {
     // This would integrate with the Telegram bot to handle commands
     // The actual integration would be done in the Telegram plugin
-    logger.info("Command handlers set up for user-initiated raids and moderation");
+    logger.info(
+      "Command handlers set up for user-initiated raids and moderation",
+    );
   }
 
   async handleIncomingMessage(
@@ -124,7 +134,7 @@ export class AnubisRaidFlow {
     userId: string,
     username: string,
     messageId: string,
-    channelId: string
+    channelId: string,
   ): Promise<void> {
     try {
       // Process message for X links (user-initiated raids)
@@ -133,7 +143,7 @@ export class AnubisRaidFlow {
         userId,
         username,
         messageId,
-        channelId
+        channelId,
       );
     } catch (error) {
       logger.error("Error handling incoming message:", error);
@@ -234,37 +244,49 @@ export class AnubisRaidFlow {
     userId: string,
     username: string,
     args: string[],
-    channelId: string = "default"
+    channelId: string = "default",
   ): Promise<string> {
     // Check for moderation commands first
     const moderationCommands = [
-      "/banraider", "/unbanraider", "/warnraider", "/raiderstatus", 
-      "/resetraid", "/forceunlock", "/clearpoints", "/modlog", "/bannedlist"
+      "/banraider",
+      "/unbanraider",
+      "/warnraider",
+      "/raiderstatus",
+      "/resetraid",
+      "/forceunlock",
+      "/clearpoints",
+      "/modlog",
+      "/bannedlist",
     ];
-    
+
     if (moderationCommands.includes(command)) {
       return this.moderationService.handleModerationCommand(
         command,
         userId,
         username,
         args,
-        channelId
+        channelId,
       );
     }
 
     // Check for user-initiated raid commands
     const userRaidCommands = [
-      "/setlikes", "/setretweets", "/setcomments", "/setquotes",
-      "/lockraid", "/unlockraid", "/raidstatus"
+      "/setlikes",
+      "/setretweets",
+      "/setcomments",
+      "/setquotes",
+      "/lockraid",
+      "/unlockraid",
+      "/raidstatus",
     ];
-    
+
     if (userRaidCommands.includes(command)) {
       return this.userInitiatedFlow.handleCommand(
         command,
         userId,
         username,
         args,
-        channelId
+        channelId,
       );
     }
 
@@ -451,17 +473,17 @@ The divine legion coordinates as one! 🔥`;
   private async handleVerifyEngagement(
     userId: string,
     username: string,
-    args: string[]
+    args: string[],
   ): Promise<string> {
     if (args.length < 1) {
       return "❌ Usage: /verify [like|retweet|reply|quote] - Verify your engagement with the current raid target";
     }
 
     const engagementType = args[0].toLowerCase();
-    const validTypes = ['like', 'retweet', 'reply', 'quote', 'quote_tweet'];
-    
+    const validTypes = ["like", "retweet", "reply", "quote", "quote_tweet"];
+
     if (!validTypes.includes(engagementType)) {
-      return `❌ Invalid engagement type. Use: ${validTypes.join(', ')}`;
+      return `❌ Invalid engagement type. Use: ${validTypes.join(", ")}`;
     }
 
     try {
@@ -473,7 +495,7 @@ The divine legion coordinates as one! 🔥`;
 
       const raid = activeRaids[0]; // Most recent
       const tweetId = this.extractTweetIdFromUrl(raid.tweetUrl);
-      
+
       if (!tweetId) {
         return "❌ Invalid raid target URL.";
       }
@@ -488,11 +510,11 @@ The divine legion coordinates as one! 🔥`;
         tweetId,
         userId,
         username,
-        engagementType as any
+        engagementType as any,
       );
 
       if (!verification.verified) {
-        return `❌ ${verification.reason || 'Engagement verification failed. Please ensure you completed the action and try again.'}`;
+        return `❌ ${verification.reason || "Engagement verification failed. Please ensure you completed the action and try again."}`;
       }
 
       // Join raid if not already joined
@@ -503,19 +525,18 @@ The divine legion coordinates as one! 🔥`;
         raid.id,
         userId,
         engagementType,
-        verification.points
+        verification.points,
       );
 
       // Update chat lock progress if applicable
       const progressUpdate: any = {};
       progressUpdate[`${engagementType}s`] = 1; // likes, retweets, etc.
-      
+
       // Find the channel this raid belongs to (simplified)
       const channelId = "default"; // This would need proper channel tracking
       await this.chatLockManager.updateProgress(channelId, progressUpdate);
 
       return `✅ **${engagementType.toUpperCase()} VERIFIED!** ⚡\n\nYou earned **${verification.points} divine points** for your ${engagementType}!\n\n*The cosmic algorithms have registered your devotion.*`;
-
     } catch (error) {
       logger.error("Error verifying engagement:", error);
       return "❌ Verification service temporarily unavailable. Please try again later.";
@@ -523,7 +544,9 @@ The divine legion coordinates as one! 🔥`;
   }
 
   private extractTweetIdFromUrl(url: string): string | null {
-    const match = url.match(/(?:twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/status\/(\d+)/);
+    const match = url.match(
+      /(?:twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/status\/(\d+)/,
+    );
     return match ? match[1] : null;
   }
 

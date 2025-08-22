@@ -32,7 +32,7 @@ export class PersonalityService {
 
   constructor(yamlConfigManager?: YAMLConfigManager) {
     this.yamlConfigManager = yamlConfigManager || new YAMLConfigManager();
-    
+
     // Initialize configuration
     this.config = {
       evolutionRate: 0.01,
@@ -48,7 +48,7 @@ export class PersonalityService {
 
   private loadPersonalityState(): PersonalityState {
     const yamlState = this.yamlConfigManager.getPersonalityState();
-    
+
     // Merge YAML state with defaults
     return {
       openness: 85,
@@ -99,12 +99,14 @@ export class PersonalityService {
       if (typeof this.personalityState[key] === "number") {
         const drift = (Math.random() - 0.5) * this.config.driftRate;
         this.personalityState[key] = this.clampValue(
-          (this.personalityState[key] as number) + drift
+          (this.personalityState[key] as number) + drift,
         );
       }
     });
 
-    logger.debug("Personality drift applied: " + JSON.stringify(this.getSnapshot()));
+    logger.debug(
+      "Personality drift applied: " + JSON.stringify(this.getSnapshot()),
+    );
   }
 
   /**
@@ -123,25 +125,44 @@ export class PersonalityService {
       this.adjustTrait("empathy", this.config.evolutionRate * sentiment);
     }
 
-    if (text.includes("joke") || text.includes("funny") || text.includes("lol")) {
+    if (
+      text.includes("joke") ||
+      text.includes("funny") ||
+      text.includes("lol")
+    ) {
       this.adjustTrait("humor", this.config.evolutionRate);
     }
 
-    if (text.includes("ancient") || text.includes("history") || text.includes("wisdom")) {
+    if (
+      text.includes("ancient") ||
+      text.includes("history") ||
+      text.includes("wisdom")
+    ) {
       this.adjustTrait("ancientWisdom", this.config.evolutionRate);
     }
 
-    if (text.includes("create") || text.includes("build") || text.includes("design")) {
+    if (
+      text.includes("create") ||
+      text.includes("build") ||
+      text.includes("design")
+    ) {
       this.adjustTrait("creativity", this.config.evolutionRate);
     }
 
     // Emotional content affects neuroticism
-    if (text.includes("stress") || text.includes("worry") || text.includes("anxious")) {
+    if (
+      text.includes("stress") ||
+      text.includes("worry") ||
+      text.includes("anxious")
+    ) {
       this.adjustTrait("neuroticism", this.config.evolutionRate * 0.5);
     }
 
     // Social interaction affects extraversion
-    if (message.content.source === "discord" || message.content.source === "telegram") {
+    if (
+      message.content.source === "discord" ||
+      message.content.source === "telegram"
+    ) {
       this.adjustTrait("extraversion", this.config.evolutionRate * 0.3);
     }
   }
@@ -162,11 +183,14 @@ export class PersonalityService {
    * Adjust a specific personality trait
    */
   private adjustTrait(trait: string, amount: number): void {
-    if (trait in this.personalityState && typeof this.personalityState[trait] === "number") {
+    if (
+      trait in this.personalityState &&
+      typeof this.personalityState[trait] === "number"
+    ) {
       const currentValue = this.personalityState[trait] as number;
       const newValue = this.clampValue(currentValue + amount);
       this.personalityState[trait] = newValue;
-      
+
       // Handle legacy field mapping
       if (trait === "solanaMaximalism") {
         this.personalityState.solana_maximalism = newValue;
@@ -178,7 +202,10 @@ export class PersonalityService {
    * Clamp a value between min and max
    */
   private clampValue(value: number): number {
-    return Math.max(this.config.minValue, Math.min(this.config.maxValue, value));
+    return Math.max(
+      this.config.minValue,
+      Math.min(this.config.maxValue, value),
+    );
   }
 
   /**
@@ -193,7 +220,7 @@ export class PersonalityService {
    */
   getSnapshot(): Partial<PersonalityState> {
     const snapshot: Partial<PersonalityState> = {};
-    
+
     const mainTraits = [
       "openness",
       "extraversion",
@@ -203,7 +230,10 @@ export class PersonalityService {
     ];
 
     for (const trait of mainTraits) {
-      if (trait in this.personalityState && typeof this.personalityState[trait] === "number") {
+      if (
+        trait in this.personalityState &&
+        typeof this.personalityState[trait] === "number"
+      ) {
         snapshot[trait] = Math.round(this.personalityState[trait] as number);
       }
     }
@@ -232,7 +262,9 @@ export class PersonalityService {
    * Apply world-specific personality adjustments
    */
   applyWorldConfig(worldId: string): void {
-    const worldConfig = (this.yamlConfigManager as any).getWorldConfig?.(worldId);
+    const worldConfig = (this.yamlConfigManager as any).getWorldConfig?.(
+      worldId,
+    );
     if (worldConfig?.personality) {
       this.setState(worldConfig.personality);
       logger.info(`Applied world-specific personality for ${worldId}`);
@@ -265,7 +297,8 @@ export class PersonalityService {
       empathy: () => this.getTrait("empathy") > 50 && Math.random() < 0.4,
       technical: () => this.getTrait("conscientiousness") > 40,
       casual: () => this.getTrait("extraversion") > 60,
-      philosophical: () => this.getTrait("ancientWisdom") > 40 && Math.random() < 0.2,
+      philosophical: () =>
+        this.getTrait("ancientWisdom") > 40 && Math.random() < 0.2,
       enthusiastic: () => this.getTrait("openness") > 70,
     };
 

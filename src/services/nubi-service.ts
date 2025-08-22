@@ -9,8 +9,14 @@ import {
 } from "@elizaos/core";
 import { PersonalityService } from "./personality-service";
 import { EmotionalService } from "./emotional-service";
-import { AntiDetectionService, ConversationContext } from "./anti-detection-service";
-import { ResponseGenerationService, ProcessedResponse } from "./response-generation-service";
+import {
+  AntiDetectionService,
+  ConversationContext,
+} from "./anti-detection-service";
+import {
+  ResponseGenerationService,
+  ProcessedResponse,
+} from "./response-generation-service";
 import { KnowledgeService } from "../knowledge-system";
 import YAMLConfigManager from "../config/yaml-config-manager";
 import UserIdentityService from "../user-identity-service";
@@ -43,7 +49,7 @@ export class AnubisService extends Service {
   private emotionalService: EmotionalService;
   private antiDetectionService: AntiDetectionService;
   private responseGenerationService: ResponseGenerationService;
-  
+
   // Other services
   private raidFlow: AnubisRaidFlow | null = null;
   private knowledgeService: KnowledgeService;
@@ -53,7 +59,7 @@ export class AnubisService extends Service {
   private variableCollector: VariableCollector;
   private templateEngine: TemplateEngine;
   private taskManager: AutonomousTaskManager;
-  
+
   // Advanced systems
   private communityMemory: CommunityMemoryService;
   private socialDynamics: SocialDynamicsEngine;
@@ -87,7 +93,7 @@ export class AnubisService extends Service {
       runtime,
       this.personalityService,
       this.emotionalService,
-      this.antiDetectionService
+      this.antiDetectionService,
     );
 
     // Initialize other services
@@ -97,7 +103,7 @@ export class AnubisService extends Service {
     this.variableCollector = new VariableCollector();
     this.templateEngine = new TemplateEngine();
     this.taskManager = new AutonomousTaskManager(runtime);
-    
+
     // Initialize advanced systems
     this.communityMemory = new CommunityMemoryService(runtime);
     this.socialDynamics = new SocialDynamicsEngine();
@@ -124,13 +130,17 @@ export class AnubisService extends Service {
 
       // Initialize raid flow if telegram is configured
       if (process.env.TELEGRAM_BOT_TOKEN) {
-        logger.info("🔺 Initializing Anubis Raid Flow with Telegram integration...");
+        logger.info(
+          "🔺 Initializing Anubis Raid Flow with Telegram integration...",
+        );
         this.raidFlow = new AnubisRaidFlow(this.runtime);
         await this.raidFlow.initialize();
         logger.info("✅ Anubis Raid Flow initialized successfully");
       } else {
         logger.info("⚠️  TELEGRAM_BOT_TOKEN not set - raid features disabled");
-        logger.info("Set TELEGRAM_BOT_TOKEN in .env to enable raid functionality");
+        logger.info(
+          "Set TELEGRAM_BOT_TOKEN in .env to enable raid functionality",
+        );
       }
 
       // Initialize advanced systems if methods exist
@@ -178,7 +188,7 @@ export class AnubisService extends Service {
   async processMessage(
     message: Memory,
     state: State,
-    userId: string
+    userId: string,
   ): Promise<ProcessedResponse> {
     try {
       // Extract user identity
@@ -188,17 +198,18 @@ export class AnubisService extends Service {
         identity.platformUserId,
         identity.platformUsername,
         identity.displayName,
-        message.roomId
+        message.roomId,
       );
       // Add id if not present
       if (!(resolvedIdentity as any).id) {
-        (resolvedIdentity as any).id = resolvedIdentity.platformUserId || userId;
+        (resolvedIdentity as any).id =
+          resolvedIdentity.platformUserId || userId;
       }
 
       // Get conversation context
       const context = await this.getConversationContext(
         message.entityId,
-        message.roomId
+        message.roomId,
       );
 
       // Extract variables for templates
@@ -213,7 +224,7 @@ export class AnubisService extends Service {
         message,
         state,
         resolvedIdentity,
-        relationshipHistory
+        relationshipHistory,
       );
 
       // Update emotional state based on message
@@ -280,7 +291,7 @@ export class AnubisService extends Service {
         message,
         state,
         context,
-        variables
+        variables,
       );
 
       // Apply virality optimization if score is high
@@ -301,14 +312,14 @@ export class AnubisService extends Service {
     } catch (error) {
       logger.error("Message processing failed:", error);
       return this.responseGenerationService.generateErrorResponse(
-        "Message processing failed"
+        "Message processing failed",
       );
     }
   }
 
   private async getConversationContext(
     entityId: UUID,
-    roomId: UUID
+    roomId: UUID,
   ): Promise<ConversationContext> {
     const recentMemories = await this.runtime.getMemories({
       roomId,
@@ -352,7 +363,7 @@ export class AnubisService extends Service {
   private async storeInteractionMemory(
     message: Memory,
     response: string,
-    context: ConversationContext
+    context: ConversationContext,
   ): Promise<void> {
     const topics = this.extractTopics(message.content.text || "");
 
@@ -375,7 +386,7 @@ export class AnubisService extends Service {
           personalitySnapshot: this.personalityService.getSnapshot(),
         },
       } as any,
-      "memories"
+      "memories",
     );
   }
 
@@ -434,7 +445,7 @@ export class AnubisService extends Service {
     if (!this.raidFlow) {
       return "🔺 Raid functionality not enabled. Divine power requires TELEGRAM_BOT_TOKEN to manifest.";
     }
-    
+
     try {
       return await this.raidFlow.handleCommand("/raid", userId, username, []);
     } catch (error) {
@@ -447,9 +458,14 @@ export class AnubisService extends Service {
     if (!this.raidFlow) {
       return "🏆 Leaderboard unavailable - raids not enabled";
     }
-    
+
     try {
-      return await this.raidFlow.handleCommand("/leaderboard", "system", "system", [limit.toString()]);
+      return await this.raidFlow.handleCommand(
+        "/leaderboard",
+        "system",
+        "system",
+        [limit.toString()],
+      );
     } catch (error) {
       logger.error("Failed to get leaderboard:", error);
       return "🏆 Leaderboard temporarily unavailable - divine rankings being recalculated.";
@@ -460,9 +476,14 @@ export class AnubisService extends Service {
     if (!this.raidFlow) {
       return "📊 Your Stats:\nRaids: 0\nPoints: 0\nRank: Unranked\n\n*Raid system not enabled*";
     }
-    
+
     try {
-      return await this.raidFlow.handleCommand("/mystats", userId, `user_${userId.slice(0, 8)}`, []);
+      return await this.raidFlow.handleCommand(
+        "/mystats",
+        userId,
+        `user_${userId.slice(0, 8)}`,
+        [],
+      );
     } catch (error) {
       logger.error("Failed to get user stats:", error);
       return "📊 Stats temporarily unavailable - divine records being updated.";
@@ -473,9 +494,14 @@ export class AnubisService extends Service {
     if (!this.raidFlow) {
       return "🏅 Your Achievements:\nNone yet - start raiding to earn achievements!\n\n*Raid system not enabled*";
     }
-    
+
     try {
-      return await this.raidFlow.handleCommand("/achievements", userId, `user_${userId.slice(0, 8)}`, []);
+      return await this.raidFlow.handleCommand(
+        "/achievements",
+        userId,
+        `user_${userId.slice(0, 8)}`,
+        [],
+      );
     } catch (error) {
       logger.error("Failed to get achievements:", error);
       return "🏅 Achievements temporarily unavailable - divine honors being tallied.";
@@ -491,19 +517,28 @@ export class AnubisService extends Service {
     await this.processMessage(message, {} as State, message.entityId);
   }
 
-  async onWorldConnected(world: string, rooms: any[], entities: any[]): Promise<void> {
+  async onWorldConnected(
+    world: string,
+    rooms: any[],
+    entities: any[],
+  ): Promise<void> {
     logger.info(`World connected: ${world}`);
   }
 
-  async onWorldJoined(world: string, agent: any, rooms: any[], entities: any[]): Promise<void> {
+  async onWorldJoined(
+    world: string,
+    agent: any,
+    rooms: any[],
+    entities: any[],
+  ): Promise<void> {
     logger.info(`World joined: ${world}`);
   }
 
   getFullYAMLConfig(): any {
     return {
       knowledge: {
-        solana_protocols: {}
-      }
+        solana_protocols: {},
+      },
     };
   }
 }

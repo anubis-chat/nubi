@@ -178,21 +178,23 @@ const processMessageAction: Action = {
 
     const text = message.content.text.toLowerCase();
     const platform = message.content.source;
-    const isTwitter = platform === 'twitter' || platform === 'x';
-    const isMentioned = text.includes("@anubis") || text.includes(runtime.character?.name?.toLowerCase());
-    
+    const isTwitter = platform === "twitter" || platform === "x";
+    const isMentioned =
+      text.includes("@anubis") ||
+      text.includes(runtime.character?.name?.toLowerCase());
+
     // Platform-specific logic
     if (isTwitter) {
       // On Twitter/X: respond contextually in conversations, always respond if mentioned
       if (isMentioned) return true;
-      
+
       // Check if we're already in a conversation (contextual response)
       // This would need conversation tracking implementation
       return true; // For now, respond to all Twitter messages
     }
-    
+
     // Discord/Telegram: Only respond when mentioned
-    if (platform === 'discord' || platform === 'telegram') {
+    if (platform === "discord" || platform === "telegram") {
       return isMentioned;
     }
 
@@ -216,8 +218,9 @@ const processMessageAction: Action = {
 
         if (recentMessages.length > 0) {
           const lastMessage = recentMessages[0];
-          const timeSinceLastMessage = Date.now() - (lastMessage.createdAt || 0);
-          
+          const timeSinceLastMessage =
+            Date.now() - (lastMessage.createdAt || 0);
+
           // Reduced rate limit: 1 second instead of 5
           if (timeSinceLastMessage < 1000) {
             return false;
@@ -250,10 +253,12 @@ const processMessageAction: Action = {
 
       // Optimize state composition based on platform and context
       const platform = message.content.source;
-      const isTwitter = platform === 'twitter' || platform === 'x';
+      const isTwitter = platform === "twitter" || platform === "x";
       const text = message.content.text?.toLowerCase() || "";
-      const isMentioned = text.includes("@anubis") || text.includes(runtime.character?.name?.toLowerCase());
-      
+      const isMentioned =
+        text.includes("@anubis") ||
+        text.includes(runtime.character?.name?.toLowerCase());
+
       // Only compose complex state when necessary
       let composedState = null;
       if (!isTwitter && isMentioned) {
@@ -918,7 +923,9 @@ const nubiPlugin: Plugin = {
         try {
           const messageBus =
             runtime.getService<MessageBusService>("message-bus");
-          const sessions = messageBus ? (messageBus as any).getAllRooms?.() || [] : [];
+          const sessions = messageBus
+            ? (messageBus as any).getAllRooms?.() || []
+            : [];
 
           response.json({
             success: true,
@@ -1041,7 +1048,11 @@ const nubiPlugin: Plugin = {
         // Initialize world-specific context
         const service = runtime.getService<NubiService>("nubi");
         if (service) {
-          await service.onWorldConnected((world as any).id || String(world), rooms, entities);
+          await service.onWorldConnected(
+            (world as any).id || String(world),
+            rooms,
+            entities,
+          );
         }
       },
     ],
@@ -1064,7 +1075,12 @@ const nubiPlugin: Plugin = {
         // Handle entity joining world
         const service = runtime.getService<NubiService>("nubi");
         if (service) {
-          await service.onWorldJoined((world as any).id || String(world), undefined, rooms, entities);
+          await service.onWorldJoined(
+            (world as any).id || String(world),
+            undefined,
+            rooms,
+            entities,
+          );
         }
       },
     ],

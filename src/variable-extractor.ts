@@ -577,14 +577,18 @@ export class VariableExtractor {
 
   private estimateTimezone(message: Memory): string {
     // Simple timezone estimation based on activity time
-    const hour = message.createdAt ? new Date(message.createdAt).getHours() : new Date().getHours();
+    const hour = message.createdAt
+      ? new Date(message.createdAt).getHours()
+      : new Date().getHours();
     if (hour >= 0 && hour < 8) return "PST";
     if (hour >= 8 && hour < 16) return "EST";
     return "UTC";
   }
 
   private getUserLocalTime(message: Memory): string {
-    return message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : new Date().toLocaleTimeString();
+    return message.createdAt
+      ? new Date(message.createdAt).toLocaleTimeString()
+      : new Date().toLocaleTimeString();
   }
 
   private detectLanguageStyle(text: string): string {

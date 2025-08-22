@@ -33,8 +33,12 @@ describe("Project Structure Validation", () => {
   describe("Source Files", () => {
     it("should contain the required source files", () => {
       expect(fileExists(path.join(rootDir, "src", "index.ts"))).toBe(true);
-      expect(fileExists(path.join(rootDir, "src", "nubi-plugin.ts"))).toBe(true);
-      expect(fileExists(path.join(rootDir, "src", "nubi-character.ts"))).toBe(true);
+      expect(fileExists(path.join(rootDir, "src", "nubi-plugin.ts"))).toBe(
+        true,
+      );
+      expect(fileExists(path.join(rootDir, "src", "nubi-character.ts"))).toBe(
+        true,
+      );
     });
 
     it("should have properly structured main files", () => {

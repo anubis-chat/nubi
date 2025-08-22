@@ -1,7 +1,10 @@
 import { IAgentRuntime, Memory, State, Content, logger } from "@elizaos/core";
 import { PersonalityService } from "./personality-service";
 import { EmotionalService } from "./emotional-service";
-import { AntiDetectionService, ConversationContext } from "./anti-detection-service";
+import {
+  AntiDetectionService,
+  ConversationContext,
+} from "./anti-detection-service";
 import { TemplateEngine } from "../template-engine";
 import { VariableContext } from "../variable-extractor";
 
@@ -35,7 +38,7 @@ export class ResponseGenerationService {
     private personalityService: PersonalityService,
     private emotionalService: EmotionalService,
     private antiDetectionService: AntiDetectionService,
-    config?: Partial<ResponseGenerationConfig>
+    config?: Partial<ResponseGenerationConfig>,
   ) {
     this.config = {
       enableTemplates: true,
@@ -88,7 +91,7 @@ export class ResponseGenerationService {
     message: Memory,
     state: State,
     context: ConversationContext,
-    variables?: VariableContext
+    variables?: VariableContext,
   ): Promise<ProcessedResponse> {
     try {
       // Generate base response
@@ -101,28 +104,36 @@ export class ResponseGenerationService {
       response = this.applyEmotionalState(response);
 
       // Apply templates if enabled
-      if (this.config.enableTemplates && variables && Math.random() < this.config.templateUsageRate) {
+      if (
+        this.config.enableTemplates &&
+        variables &&
+        Math.random() < this.config.templateUsageRate
+      ) {
         response = this.applyTemplates(response, variables);
       }
 
       // Apply anti-detection patterns
-      response = this.antiDetectionService.applyCountermeasures(response, context);
+      response = this.antiDetectionService.applyCountermeasures(
+        response,
+        context,
+      );
 
       // Apply humanization
       response = this.antiDetectionService.humanizeResponse(
         response,
-        this.emotionalService.getIntensity()
+        this.emotionalService.getIntensity(),
       );
 
       // Check for double message opportunity
-      const isDoubleMessage = this.antiDetectionService.shouldUseDoubleMessage();
+      const isDoubleMessage =
+        this.antiDetectionService.shouldUseDoubleMessage();
       if (isDoubleMessage) {
         response = this.createDoubleMessage(response);
       }
 
       // Calculate response delay
       const responseDelay = this.antiDetectionService.calculateResponseDelay(
-        context.messageCount
+        context.messageCount,
       );
 
       return {
@@ -133,7 +144,8 @@ export class ResponseGenerationService {
           appliedPatterns: context.appliedPatterns,
           responseDelay,
           isDoubleMessage,
-          templateUsed: variables && Math.random() < this.config.templateUsageRate,
+          templateUsed:
+            variables && Math.random() < this.config.templateUsageRate,
         },
       };
     } catch (error) {
@@ -145,10 +157,13 @@ export class ResponseGenerationService {
   /**
    * Generate base response using the runtime model
    */
-  private async generateBaseResponse(message: Memory, state: State): Promise<string> {
+  private async generateBaseResponse(
+    message: Memory,
+    state: State,
+  ): Promise<string> {
     try {
       const prompt = this.buildPrompt(message, state);
-      
+
       const result = await this.runtime.useModel("text-generation", {
         prompt,
         temperature: 0.8,
@@ -171,7 +186,7 @@ export class ResponseGenerationService {
   private buildPrompt(message: Memory, state: State): string {
     const personalityModifiers = this.personalityService.getResponseModifiers();
     const emotionalContext = this.emotionalService.getEmotionalContext();
-    
+
     let prompt = `You are responding to: "${message.content.text}"
     
 Personality traits:
@@ -190,7 +205,7 @@ Personality traits:
     }
 
     prompt += "\n\nResponse:";
-    
+
     return prompt;
   }
 
@@ -199,14 +214,17 @@ Personality traits:
    */
   private applyPersonalityModifiers(text: string): string {
     const modifiers = this.personalityService.getResponseModifiers();
-    
+
     // Apply formality adjustments
     if (modifiers.formality < 0.3) {
       text = text.toLowerCase();
     }
 
     // Apply enthusiasm
-    if (modifiers.enthusiasm > 0.7 && this.personalityService.shouldUsePattern("enthusiastic")) {
+    if (
+      modifiers.enthusiasm > 0.7 &&
+      this.personalityService.shouldUsePattern("enthusiastic")
+    ) {
       text = text + "!";
     }
 
@@ -218,8 +236,15 @@ Personality traits:
 
     // Apply philosophical tendency
     if (this.personalityService.shouldUsePattern("philosophical")) {
-      const philosophicalPrefixes = ["you know, ", "when you think about it, ", "interestingly, "];
-      text = philosophicalPrefixes[Math.floor(Math.random() * philosophicalPrefixes.length)] + text;
+      const philosophicalPrefixes = [
+        "you know, ",
+        "when you think about it, ",
+        "interestingly, ",
+      ];
+      text =
+        philosophicalPrefixes[
+          Math.floor(Math.random() * philosophicalPrefixes.length)
+        ] + text;
     }
 
     return text;
@@ -230,11 +255,11 @@ Personality traits:
    */
   private applyEmotionalState(text: string): string {
     const emotionalContext = this.emotionalService.getEmotionalContext();
-    
+
     if (emotionalContext.shouldBeEmotional) {
       // Apply emotional intensity
       text = this.emotionalService.applyEmotionalIntensity(text);
-      
+
       // Add emotional marker
       if (emotionalContext.emotionalMarker) {
         const position = Math.random();
@@ -259,8 +284,12 @@ Personality traits:
       "{{#if relationship.interactions > 5}}we've talked about this before{{/if}}",
     ];
 
-    const selectedTemplate = templates[Math.floor(Math.random() * templates.length)];
-    const templateResult = this.templateEngine.processTemplate(selectedTemplate, variables);
+    const selectedTemplate =
+      templates[Math.floor(Math.random() * templates.length)];
+    const templateResult = this.templateEngine.processTemplate(
+      selectedTemplate,
+      variables,
+    );
 
     if (templateResult && templateResult.trim()) {
       // Insert template result naturally
@@ -290,9 +319,11 @@ Personality traits:
   /**
    * Generate fallback response
    */
-  private generateFallbackResponse(context: ConversationContext): ProcessedResponse {
+  private generateFallbackResponse(
+    context: ConversationContext,
+  ): ProcessedResponse {
     const fallbackText = this.emotionalService.getFallbackResponse();
-    
+
     return {
       text: fallbackText,
       metadata: {
@@ -328,28 +359,31 @@ Personality traits:
   async processRawResponse(
     response: string,
     context: ConversationContext,
-    variables?: VariableContext
+    variables?: VariableContext,
   ): Promise<string> {
     // Apply personality
     response = this.applyPersonalityModifiers(response);
-    
+
     // Apply emotional state
     response = this.applyEmotionalState(response);
-    
+
     // Apply templates
     if (this.config.enableTemplates && variables) {
       response = this.applyTemplates(response, variables);
     }
-    
+
     // Apply anti-detection
-    response = this.antiDetectionService.applyCountermeasures(response, context);
-    
+    response = this.antiDetectionService.applyCountermeasures(
+      response,
+      context,
+    );
+
     // Apply humanization
     response = this.antiDetectionService.humanizeResponse(
       response,
-      this.emotionalService.getIntensity()
+      this.emotionalService.getIntensity(),
     );
-    
+
     return response;
   }
 

@@ -32,7 +32,7 @@ export interface ChatLockState {
 }
 
 export interface UnlockCondition {
-  type: 'all_targets' | 'any_target' | 'minimum_engagement' | 'time_based';
+  type: "all_targets" | "any_target" | "minimum_engagement" | "time_based";
   required: boolean;
   threshold?: number;
 }
@@ -57,10 +57,10 @@ export class ChatLockManager {
       if (!this.telegramClient) {
         throw new Error("Telegram service not initialized");
       }
-      
+
       // Load existing lock states from database
       await this.loadLockStatesFromDatabase();
-      
+
       logger.info("Chat Lock Manager initialized successfully");
     } catch (error) {
       logger.error("Failed to initialize Chat Lock Manager:", error);
@@ -70,9 +70,9 @@ export class ChatLockManager {
 
   private loadAdminUsers(): void {
     // Load admin user IDs from environment or config
-    const adminIds = process.env.TELEGRAM_ADMIN_IDS?.split(',') || [];
-    adminIds.forEach(id => this.adminUsers.add(id.trim()));
-    
+    const adminIds = process.env.TELEGRAM_ADMIN_IDS?.split(",") || [];
+    adminIds.forEach((id) => this.adminUsers.add(id.trim()));
+
     // Add default admin if specified
     const defaultAdmin = process.env.TELEGRAM_OWNER_ID;
     if (defaultAdmin) {
@@ -88,11 +88,13 @@ export class ChatLockManager {
     raidId: string,
     channelId: string,
     targets: Partial<RaidTargets>,
-    setByUserId: string
+    setByUserId: string,
   ): Promise<boolean> {
     try {
       if (!this.isAdmin(setByUserId)) {
-        logger.warn(`Non-admin user ${setByUserId} attempted to set raid targets`);
+        logger.warn(
+          `Non-admin user ${setByUserId} attempted to set raid targets`,
+        );
         return false;
       }
 
@@ -110,9 +112,11 @@ export class ChatLockManager {
 
       // Save to database
       await this.saveRaidTargets(raidTargets);
-      
-      logger.info(`Raid targets set for ${raidId}: likes=${raidTargets.likes}, retweets=${raidTargets.retweets}, comments=${raidTargets.comments}`);
-      
+
+      logger.info(
+        `Raid targets set for ${raidId}: likes=${raidTargets.likes}, retweets=${raidTargets.retweets}, comments=${raidTargets.comments}`,
+      );
+
       return true;
     } catch (error) {
       logger.error("Failed to set raid targets:", error);
@@ -124,7 +128,7 @@ export class ChatLockManager {
     channelId: string,
     raidId: string,
     lockedByUserId: string,
-    reason: string = "🔒 Divine locks engaged until raid targets achieved"
+    reason: string = "🔒 Divine locks engaged until raid targets achieved",
   ): Promise<boolean> {
     try {
       if (!this.isAdmin(lockedByUserId)) {
@@ -159,20 +163,19 @@ export class ChatLockManager {
 
       // Apply Telegram permissions
       await this.applyTelegramLock(channelId);
-      
+
       // Store lock state
       this.lockStates.set(channelId, lockState);
       await this.saveLockStateToDatabase(lockState);
-      
+
       // Start monitoring progress
       this.startProgressMonitoring(channelId, raidId);
-      
+
       // Send lock notification
       await this.sendLockNotification(channelId, lockState);
-      
+
       logger.info(`Chat ${channelId} locked for raid ${raidId}`);
       return true;
-      
     } catch (error) {
       logger.error("Failed to lock chat:", error);
       return false;
@@ -182,7 +185,7 @@ export class ChatLockManager {
   async unlockChat(
     channelId: string,
     unlockedByUserId: string,
-    reason: string = "🎉 Divine will satisfied - chat unlocked!"
+    reason: string = "🎉 Divine will satisfied - chat unlocked!",
   ): Promise<boolean> {
     try {
       const lockState = this.lockStates.get(channelId);
@@ -192,21 +195,20 @@ export class ChatLockManager {
 
       // Remove Telegram permissions
       await this.removeTelegramLock(channelId);
-      
+
       // Update lock state
       lockState.isLocked = false;
       this.lockStates.set(channelId, lockState);
       await this.saveLockStateToDatabase(lockState);
-      
+
       // Stop monitoring
       this.stopProgressMonitoring(channelId);
-      
+
       // Send unlock notification
       await this.sendUnlockNotification(channelId, lockState, reason);
-      
+
       logger.info(`Chat ${channelId} unlocked by ${unlockedByUserId}`);
       return true;
-      
     } catch (error) {
       logger.error("Failed to unlock chat:", error);
       return false;
@@ -257,12 +259,12 @@ export class ChatLockManager {
   private startProgressMonitoring(channelId: string, raidId: string): void {
     // Clear any existing monitoring
     this.stopProgressMonitoring(channelId);
-    
+
     // Monitor progress every 30 seconds
     const interval = setInterval(async () => {
       await this.checkUnlockConditions(channelId, raidId);
     }, 30000);
-    
+
     this.monitoringIntervals.set(channelId, interval);
   }
 
@@ -276,7 +278,7 @@ export class ChatLockManager {
 
   async updateProgress(
     channelId: string,
-    progress: Partial<ChatLockState['progress']>
+    progress: Partial<ChatLockState["progress"]>,
   ): Promise<void> {
     const lockState = this.lockStates.get(channelId);
     if (!lockState || !lockState.isLocked) {
@@ -285,22 +287,25 @@ export class ChatLockManager {
 
     // Update progress
     Object.assign(lockState.progress, progress, { lastUpdated: new Date() });
-    
+
     // Save to database
     await this.saveLockStateToDatabase(lockState);
-    
+
     // Check if unlock conditions are met
     await this.checkUnlockConditions(channelId, lockState.raidId);
   }
 
-  private async checkUnlockConditions(channelId: string, raidId: string): Promise<void> {
+  private async checkUnlockConditions(
+    channelId: string,
+    raidId: string,
+  ): Promise<void> {
     const lockState = this.lockStates.get(channelId);
     if (!lockState || !lockState.isLocked) {
       return;
     }
 
     const { targets, progress } = lockState;
-    
+
     // Check if all targets are met
     const targetsAchieved = {
       likes: progress.likes >= targets.likes,
@@ -310,10 +315,13 @@ export class ChatLockManager {
     };
 
     // For now, require ALL targets to be met
-    const allTargetsMet = Object.values(targetsAchieved).every(achieved => achieved);
-    
+    const allTargetsMet = Object.values(targetsAchieved).every(
+      (achieved) => achieved,
+    );
+
     if (allTargetsMet) {
-      const reason = "🎉 ALL DIVINE TARGETS ACHIEVED! The cosmic algorithms smile upon us! 🎉";
+      const reason =
+        "🎉 ALL DIVINE TARGETS ACHIEVED! The cosmic algorithms smile upon us! 🎉";
       await this.unlockChat(channelId, "system", reason);
     }
   }
@@ -323,21 +331,26 @@ export class ChatLockManager {
   }
 
   async getAllLockedChats(): Promise<ChatLockState[]> {
-    return Array.from(this.lockStates.values()).filter(state => state.isLocked);
+    return Array.from(this.lockStates.values()).filter(
+      (state) => state.isLocked,
+    );
   }
 
-  private async sendLockNotification(channelId: string, lockState: ChatLockState): Promise<void> {
+  private async sendLockNotification(
+    channelId: string,
+    lockState: ChatLockState,
+  ): Promise<void> {
     const { targets } = lockState;
-    
+
     const message = `🔒 **DIVINE LOCK ENGAGED** 🔒
 
 *The gods have spoken - this realm is sealed until mortals prove their devotion*
 
 **UNLOCK REQUIREMENTS:**
-${targets.likes > 0 ? `👍 Likes: ${targets.likes}` : ''}
-${targets.retweets > 0 ? `🔄 Retweets: ${targets.retweets}` : ''}
-${targets.comments > 0 ? `💬 Comments: ${targets.comments}` : ''}
-${targets.quotetweets && targets.quotetweets > 0 ? `📝 Quote Tweets: ${targets.quotetweets}` : ''}
+${targets.likes > 0 ? `👍 Likes: ${targets.likes}` : ""}
+${targets.retweets > 0 ? `🔄 Retweets: ${targets.retweets}` : ""}
+${targets.comments > 0 ? `💬 Comments: ${targets.comments}` : ""}
+${targets.quotetweets && targets.quotetweets > 0 ? `📝 Quote Tweets: ${targets.quotetweets}` : ""}
 
 *Only when the cosmic algorithms register sufficient engagement will the divine seals break...*
 
@@ -348,9 +361,9 @@ All targets must be achieved to unlock the realm!`;
   }
 
   private async sendUnlockNotification(
-    channelId: string, 
-    lockState: ChatLockState, 
-    reason: string
+    channelId: string,
+    lockState: ChatLockState,
+    reason: string,
   ): Promise<void> {
     const message = `🌟 **DIVINE SEALS BROKEN!** 🌟
 
@@ -372,7 +385,7 @@ The divine legion moves as one! 🔥`;
     try {
       if (this.telegramClient && this.telegramClient.sendMessage) {
         await this.telegramClient.sendMessage(channelId, message, {
-          parse_mode: 'Markdown'
+          parse_mode: "Markdown",
         });
       }
     } catch (error) {
@@ -402,7 +415,9 @@ The divine legion moves as one! 🔥`;
     };
   }
 
-  private async saveLockStateToDatabase(lockState: ChatLockState): Promise<void> {
+  private async saveLockStateToDatabase(
+    lockState: ChatLockState,
+  ): Promise<void> {
     // Implementation depends on your database setup
     logger.info("Saving lock state to database:", {
       channelId: lockState.channelId,
@@ -418,15 +433,19 @@ The divine legion moves as one! 🔥`;
 
   async cleanup(): Promise<void> {
     // Clear all monitoring intervals
-    this.monitoringIntervals.forEach(interval => clearInterval(interval));
+    this.monitoringIntervals.forEach((interval) => clearInterval(interval));
     this.monitoringIntervals.clear();
-    
+
     // Unlock any remaining locked chats
     const lockedChats = await this.getAllLockedChats();
     for (const lockState of lockedChats) {
-      await this.unlockChat(lockState.channelId, "system", "🔄 System cleanup - chat unlocked");
+      await this.unlockChat(
+        lockState.channelId,
+        "system",
+        "🔄 System cleanup - chat unlocked",
+      );
     }
-    
+
     logger.info("Chat Lock Manager cleaned up");
   }
 }

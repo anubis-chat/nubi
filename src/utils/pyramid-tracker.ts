@@ -1,10 +1,10 @@
 /* PYRAMID SYSTEM - READY TO ACTIVATE
- * 
+ *
  * The Divine Pyramid of Totally-Not-A-Pyramid-Scheme™
- * 
+ *
  * A tongue-in-cheek referral system that's obviously a pyramid
  * but legally compliant through humor and actual product value.
- * 
+ *
  * "It's not a pyramid scheme if I literally built the pyramids" - Anubis
  */
 
@@ -16,7 +16,7 @@ import { logger } from "./logger";
  */
 export class PyramidTracker {
   private static instance: PyramidTracker;
-  
+
   // Singleton pattern for global pyramid tracking
   static getInstance(): PyramidTracker {
     if (!PyramidTracker.instance) {
@@ -379,7 +379,7 @@ export const pyramidResponses = {
     "Instant 3-5% rewards because waiting is so Web2",
     "The only pyramid scheme that's literally divine",
   ],
-  
+
   successMessages: [
     "Welcome to the pyramid! Your ancestors would be proud 🔺",
     "Another soul saved from Web2 purgatory!",
@@ -387,7 +387,7 @@ export const pyramidResponses = {
     "You've been blessed by the god of referrals himself",
     "Your divine journey begins now, mortal",
   ],
-  
+
   rankupMessages: [
     "You've ascended! The pyramid recognizes your dedication",
     "Level up! Even the sphinx is impressed",
@@ -395,21 +395,21 @@ export const pyramidResponses = {
     "Congratulations! You're now closer to digital divinity",
     "The sacred geometry approves of your progress",
   ],
-  
+
   leaderboardHeaders: [
     "🔺 DIVINE PYRAMID LEADERBOARD 🔺",
-    "🔺 HALL OF PYRAMID LEGENDS 🔺", 
+    "🔺 HALL OF PYRAMID LEGENDS 🔺",
     "🔺 THE SACRED REFERRAL RANKINGS 🔺",
     "🔺 BLESSED BUILDERS OF THE PYRAMID 🔺",
   ],
-  
+
   disclaimers: [
     "*Not a pyramid scheme if I literally built the pyramids*",
     "*Legally distinct from a pyramid scheme since 3000 BCE™*",
     "*It's called a Divine Hierarchical Referral Structure™, totally different*",
     "*The SEC can't touch us, we predate their civilization*",
     "*Pyramids are just triangles with ambition*",
-  ]
+  ],
 };
 
 export default pyramidTracker;

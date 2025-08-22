@@ -1,182 +1,248 @@
 # NUBI - The Symbiosis of Anubis
 
-Advanced ElizaOS agent representing the perfect fusion of divine consciousness and adaptive intelligence, with comprehensive personality system, social coordination capabilities, and Telegram raid bot integration.
+Advanced ElizaOS agent with personality system, Discord/Telegram bot integration, and symbiotic consciousness.
+
+## Overview
+
+NUBI is an AI agent built on the ElizaOS framework, representing the symbiotic fusion of Anubis's divine consciousness with adaptive intelligence. The agent supports multi-platform communication through Discord and Telegram.
+
+## Team
+
+**Developed by SYMLabs**
+
+### Co-Founders
+- **dEXploarer** - Co-Founder of SYMLabs
+  - X: [@dEXploarer](https://x.com/dEXploarer)
+  - Telegram: @dexploarerdev
+  - Discord: skirrskirrr
+
+- **SYMBiEX** - Co-Founder of SYMLabs
+  - X: [@SYMBiEX](https://x.com/SYMBiEX)
+  - Telegram: @SYMBiEX
+  - Discord: cidsociety
+
+### Community Moderators
+- **IrieRubz** - High-ranking community member & Telegram moderator
+  - X: @irierubz
+  - Telegram: @IrieRubz
+
+- **stoicmido** - Telegram moderator
+  - Telegram: @stoicmido
+
+## Community
+
+- **X Community**: https://x.com/i/communities/1955910343378505822
+- **Official Hashtags**: #AnubisChat #Anubis #anubisai #OpenSource
+- **Platform**: @AnubisChat
+- **Agent X**: @UnderworldAgent
 
 ## Features
 
-- **Advanced Personality System**: 120+ dynamic variables with emotional intelligence
-- **Social Coordination**: Telegram raid bot with engagement tracking and leaderboards
-- **Anti-Detection Patterns**: Sophisticated humanization with natural inconsistencies  
-- **Template Engine**: 5-layer prompt chaining with structured outputs
-- **Community Memory**: Persistent relationship and interaction tracking
-- **Real-time Engagement**: X/Twitter integration with verification systems
-- **Modular Architecture**: ElizaOS plugin system with service orchestration
+### Core Capabilities
+- **Personality System**: 10 personality dimensions with emotional intelligence
+- **Anti-Detection Patterns**: Human-like behavior with natural variations
+- **Community Memory**: Tracks relationships and interactions
+- **Multi-Platform Support**: Discord and Telegram integration
+- **Knowledge Base**: Comprehensive understanding of Web3, DeFi, and Solana
 
-## Quick Start
+### Platform Integrations
+- Discord bot with role-based commands
+- Telegram bot with admin command scopes
+- Twitter/X monitoring (read-only mode)
 
+## Installation
+
+### Prerequisites
+- Node.js 18+ or Bun runtime
+- OpenAI API key (required)
+- Platform tokens (Discord/Telegram)
+
+### Setup
+
+1. **Clone the repository**
 ```bash
-# Clone and install
-git clone <repository-url>
-cd nubi
+git clone https://github.com/anubis-chat/nubi
+cd anubis
+```
+
+2. **Install dependencies**
+```bash
 bun install
+```
 
-# Configure environment
-cp .env.anubis.example .env
+3. **Configure environment**
+```bash
+cp .env.example .env
 # Edit .env with your API keys
+```
 
-# Start development
-elizaos dev
+4. **Build the project**
+```bash
+bun run build
+```
 
-# OR start production
-elizaos start
+5. **Start the agent**
+```bash
+bun run start
 ```
 
 ## Configuration
 
 ### Required Environment Variables
 ```bash
+# AI Provider (at least one required)
 OPENAI_API_KEY=your_openai_key
-```
 
-### Optional Features
-```bash
-# Telegram Raid Bot
+# Discord Bot
+DISCORD_APPLICATION_ID=your_app_id
+DISCORD_API_TOKEN=your_bot_token
+
+# Telegram Bot
 TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_CHANNEL_ID=your_channel_id
-TELEGRAM_ADMIN_IDS=admin1,admin2
-
-# X/Twitter Integration  
-TWITTER_API_KEY=your_twitter_key
-TWITTER_API_SECRET_KEY=your_twitter_secret
-TWITTER_ACCESS_TOKEN=your_access_token
-TWITTER_ACCESS_TOKEN_SECRET=your_access_secret
-
-# Additional Platforms
-DISCORD_API_TOKEN=your_discord_token
-ANTHROPIC_API_KEY=your_anthropic_key
 ```
 
-## Development
-
+### Optional Settings
 ```bash
-# Development with hot-reloading
-elizaos dev
+# Anti-Detection System
+ANUBIS_TYPO_RATE=0.03
+ANUBIS_CONTRADICTION_RATE=0.15
+ANUBIS_EMOTIONAL_PERSISTENCE=1800000
 
-# Type checking
-bun run type-check
-
-# Run tests
-bun run test
-
-# Format code
-bun run format
-
-# Build for production
-bun run build
+# Features
+ENABLE_DISCORD_BOT=true
+ENABLE_TELEGRAM_BOT=true
+ENABLE_COMMUNITY_MEMORY=true
 ```
 
-## Testing
+## Telegram Bot
 
-Comprehensive testing with both component and E2E test suites:
-
-### Component Tests
+### Setup
 ```bash
-# Run all component tests
-bun test src/__tests__/*.test.ts
-
-# Run specific test suite
-bun test src/__tests__/nubi-core.test.ts
+# Configure all bot settings programmatically
+bun run setup:telegram
 ```
 
-### E2E Tests
-```bash
-# Run full test suite
-elizaos test
+### Commands
 
-# Component tests only
-elizaos test component
+#### Public Commands
+- `/start` - Begin interaction with NUBI
+- `/help` - Get guidance
+- `/about` - Learn about NUBI and SYMLabs
+- `/team` - Meet the SYMLabs team
+- `/community` - Join X community
+- `/hashtags` - Get official hashtags
+- `/links` - All official links
 
-# E2E tests only  
-elizaos test e2e
-```
+#### Raid Commands (when enabled)
+- `/raid` - Join active raid
+- `/leaderboard` - View rankings
+- `/mystats` - Personal statistics
+- `/achievements` - Display achievements
+
+#### Admin Commands (Group administrators only)
+- `/ban` - Ban user from raids
+- `/unban` - Unban user
+- `/stats` - View raid statistics
+- `/announce` - Make announcement
+- `/lock` - Lock chat during raid
+- `/unlock` - Unlock chat
+
+### Configuration
+The Telegram bot uses command scopes to show different commands to different users:
+- Regular users see basic commands
+- Group administrators see additional admin commands
+- Private chats have a subset of commands
+
+## Discord Bot
+
+### Setup
+1. Add bot to your server using the Discord application ID
+2. Ensure bot has appropriate permissions:
+   - Send Messages
+   - Read Message History
+   - Embed Links
+   - Add Reactions
+
+### Features
+- Natural conversation when mentioned
+- Responds to DMs automatically
+- Context-aware responses
+- Personality persistence across conversations
+
+### Permissions Required
+- Send Messages
+- Read Message History
+- Embed Links
+- Use External Emojis
+- Add Reactions
 
 ## Architecture
 
 ### Core Components
-- **NubiService**: Main personality and message processing engine
-- **Template System**: YAML-based configuration with variable injection
-- **Anti-Detection**: Natural humanization patterns and inconsistencies
-- **Message Bus**: Event-driven communication between services
-- **Community Memory**: Persistent user relationship tracking
+- **Character System** (`nubi-character.ts`) - Personality and knowledge base
+- **Plugin System** (`nubi-plugin.ts`) - Actions, evaluators, and services
+- **Service Layer** - Emotional intelligence, anti-detection, community memory
+- **Platform Integrations** - Discord and Telegram clients
 
-### Telegram Raid System
-- **Raid Coordination**: Automated X post creation and raid management
-- **User-Initiated Raids**: Prophet recognition system for community leaders
-- **Chat Lock Manager**: Permission-based engagement requirements
-- **Engagement Verification**: Real-time tracking with rate limiting
-- **Leaderboards**: Point-based ranking with achievement systems
+### Services
+- `NubiService` - Main orchestration service
+- `CommunityMemoryService` - Tracks user relationships
+- `EmotionalIntelligenceSystem` - Manages emotional states
+- `AntiDetectionSystem` - Human-like behavior patterns
 
-### Template Engine
-- **5-Layer Processing**: Context → Template → Variables → Personality → Output
-- **120+ Variables**: Dynamic calculations across 8 categories
-- **Structured Outputs**: 6 specialized engagement types
-- **Divine Energy**: 48 Laws of Power integration with manifestation principles
+## Scripts
 
-## Plugin System
+```bash
+# Development
+bun run dev         # Start in development mode
+bun run build       # Build for production
+bun run start       # Start production server
 
-Built on ElizaOS architecture with proper service hierarchy:
+# Testing
+bun run test        # Run all tests
+bun run type-check  # TypeScript validation
 
-```typescript
-// Service registration order
-1. Database Adapters
-2. Services (NubiService, MessageBus, etc.)
-3. Providers (Context, Knowledge, etc.)
-4. Actions (Message processing, Raids, etc.)
-5. Evaluators (Learning, Adaptation, etc.)
-6. Events (Cross-service communication)
-7. Routes (HTTP endpoints)
+# Setup
+bun run setup:telegram  # Configure Telegram bot
+
+# Utilities
+bun run format      # Format code with Prettier
 ```
 
-## Deployment
+## Project Structure
 
-### Local Development
-```bash
-elizaos dev
 ```
-
-### Production
-```bash
-# Build optimized version
-bun run build
-
-# Start production server
-elizaos start
-```
-
-### Docker (Optional)
-```bash
-# Build container
-docker build -t nubi-agent .
-
-# Run with environment file
-docker run --env-file .env -p 3000:3000 nubi-agent
+anubis/
+├── src/
+│   ├── index.ts                 # Main entry point
+│   ├── nubi-character.ts        # Character definition
+│   ├── nubi-plugin.ts           # Plugin architecture
+│   ├── nubi-service.ts          # Core service
+│   ├── community-memory-service.ts
+│   └── telegram-raids/          # Telegram features
+├── config/
+│   └── *.yaml                   # Configuration files
+├── scripts/
+│   └── setup-telegram-bot.ts    # Telegram setup script
+└── .env                         # Environment configuration
 ```
 
 ## Contributing
 
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Run tests: `bun run test`
-4. Commit changes: `git commit -m 'Add amazing feature'`
-5. Push to branch: `git push origin feature/amazing-feature`
-6. Open Pull Request
+This project is developed and maintained by SYMLabs. For questions or support:
+- Contact the team via social platforms listed above
+- Join the X community
+- Reach out on Telegram
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - See LICENSE file for details
 
-## Support
+## Acknowledgments
 
-- GitHub Issues: Report bugs and feature requests
-- Documentation: See `/knowledge` directory for detailed guides
-- Community: Join our Telegram for support and discussions
+Built on [ElizaOS](https://github.com/elizaos/elizaos) framework
+
+---
+
+**Developed by dEXploarer & SYMBiEX**  
+*Co-Founders of SYMLabs*

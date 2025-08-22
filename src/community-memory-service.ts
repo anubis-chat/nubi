@@ -290,7 +290,12 @@ export class CommunityMemoryService extends Service {
       },
       {
         handle: "SYMBiEX",
-        interests: ["symbiotic evolution", "AI", "consciousness merger", "anubis"],
+        interests: [
+          "symbiotic evolution",
+          "AI",
+          "consciousness merger",
+          "anubis",
+        ],
         influence: "co_founder",
         role: "Co-Founder of SYMLabs",
         socials: {
