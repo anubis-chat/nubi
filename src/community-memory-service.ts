@@ -13,6 +13,22 @@ export class CommunityMemoryService extends Service {
 
   private db: Database | null = null;
 
+  static async start(runtime: IAgentRuntime): Promise<Service> {
+    const service = new CommunityMemoryService(runtime);
+    logger.info("✅ Community Memory Service started");
+    return service;
+  }
+
+  static async stop(runtime: IAgentRuntime): Promise<void> {
+    const services = runtime.getServicesByType("community-memory");
+    await Promise.all(services.map((service) => service.stop()));
+  }
+
+  async start(): Promise<void> {
+    logger.info("✅ Community Memory Service started");
+    // Service is ready - no specific startup tasks needed
+  }
+
   async stop(): Promise<void> {
     // Save in-memory data to database before stopping
     await this.persistAllToDatabase();

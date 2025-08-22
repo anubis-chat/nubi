@@ -62,6 +62,10 @@ export class PluginConfigurationManagerService extends Service {
   private loadOrder: string[] = [];
   private dependencyGraph: Map<string, string[]> = new Map();
 
+  constructor(runtime: IAgentRuntime) {
+    super(runtime);
+  }
+
   get capabilityDescription(): string {
     return "Plugin configuration manager for lifecycle management and hot-swapping capabilities";
   }
@@ -72,6 +76,22 @@ export class PluginConfigurationManagerService extends Service {
     this.templates.clear();
     this.loadOrder = [];
     this.dependencyGraph.clear();
+  }
+
+  static async start(runtime: IAgentRuntime): Promise<Service> {
+    const service = new PluginConfigurationManagerService(runtime);
+    logger.info("✅ Plugin Configuration Manager started");
+    return service;
+  }
+
+  static async stop(runtime: IAgentRuntime): Promise<void> {
+    const services = runtime.getServicesByType("plugin-configuration-manager");
+    await Promise.all(services.map((service) => service.stop()));
+  }
+
+  async start(): Promise<void> {
+    logger.info("✅ Plugin Configuration Manager started");
+    // Service is ready - no specific startup tasks needed
   }
 
   async initialize(runtime: IAgentRuntime): Promise<void> {

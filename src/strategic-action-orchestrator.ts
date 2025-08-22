@@ -67,6 +67,10 @@ export class StrategyActionOrchestratorService extends Service {
   private activeExecutions: Map<string, ExecutionContext> = new Map();
   private workflowTemplates: Map<string, Workflow> = new Map();
 
+  constructor(runtime: IAgentRuntime) {
+    super(runtime);
+  }
+
   get capabilityDescription(): string {
     return "Strategic action orchestrator for multi-step workflows and LLM-driven task execution";
   }
@@ -79,6 +83,22 @@ export class StrategyActionOrchestratorService extends Service {
     }
     this.workflows.clear();
     this.workflowTemplates.clear();
+  }
+
+  static async start(runtime: IAgentRuntime): Promise<Service> {
+    const service = new StrategyActionOrchestratorService(runtime);
+    logger.info("✅ Strategic Action Orchestrator Service started");
+    return service;
+  }
+
+  static async stop(runtime: IAgentRuntime): Promise<void> {
+    const services = runtime.getServicesByType("strategic-action-orchestrator");
+    await Promise.all(services.map((service) => service.stop()));
+  }
+
+  async start(): Promise<void> {
+    logger.info("✅ Strategic Action Orchestrator started");
+    // Service is ready - no specific startup tasks needed
   }
 
   async initialize(runtime: IAgentRuntime): Promise<void> {

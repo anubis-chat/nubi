@@ -13,6 +13,22 @@ export class AnubisRaidService extends Service {
     this.raidFlow = new AnubisRaidFlow(runtime);
   }
 
+  static async start(runtime: IAgentRuntime): Promise<Service> {
+    const service = new AnubisRaidService(runtime);
+    logger.info("✅ Anubis Raid Service started");
+    return service;
+  }
+
+  static async stop(runtime: IAgentRuntime): Promise<void> {
+    const services = runtime.getServicesByType("anubis-raid");
+    await Promise.all(services.map((service) => service.stop()));
+  }
+
+  async start(): Promise<void> {
+    logger.info("✅ Anubis Raid Service started");
+    // Service is ready - no specific startup tasks needed
+  }
+
   async initialize(): Promise<void> {
     try {
       logger.info("Initializing Anubis Raid Service...");

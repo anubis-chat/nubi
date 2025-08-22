@@ -169,6 +169,10 @@ export class MessageBusService extends Service {
   private worlds: Map<string, World> = new Map();
   private rooms: Map<string, Room> = new Map();
 
+  constructor(runtime: IAgentRuntime) {
+    super(runtime);
+  }
+
   get capabilityDescription(): string {
     return "Unified message bus for multi-transport communication and world/room management";
   }
@@ -179,6 +183,22 @@ export class MessageBusService extends Service {
     this.transports.clear();
     this.worlds.clear();
     this.rooms.clear();
+  }
+
+  static async start(runtime: IAgentRuntime): Promise<Service> {
+    const service = new MessageBusService(runtime);
+    logger.info("✅ Message Bus Service started");
+    return service;
+  }
+
+  static async stop(runtime: IAgentRuntime): Promise<void> {
+    const services = runtime.getServicesByType("message-bus");
+    await Promise.all(services.map((service) => service.stop()));
+  }
+
+  async start(): Promise<void> {
+    logger.info("✅ Message Bus started");
+    // Service is ready - no specific startup tasks needed
   }
 
   async initialize(runtime: IAgentRuntime): Promise<void> {

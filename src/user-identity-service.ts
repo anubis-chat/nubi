@@ -33,6 +33,22 @@ export class UserIdentityService extends Service {
     this.initializeDatabase();
   }
 
+  static async start(runtime: IAgentRuntime): Promise<Service> {
+    const service = new UserIdentityService(runtime);
+    logger.info("✅ User Identity Service started");
+    return service;
+  }
+
+  static async stop(runtime: IAgentRuntime): Promise<void> {
+    const services = runtime.getServicesByType("user-identity");
+    await Promise.all(services.map((service) => service.stop()));
+  }
+
+  async start(): Promise<void> {
+    logger.info("✅ User Identity Service started");
+    // Service is ready - no specific startup tasks needed
+  }
+
   async stop(): Promise<void> {
     if (this.db) {
       await new Promise<void>((resolve) => {

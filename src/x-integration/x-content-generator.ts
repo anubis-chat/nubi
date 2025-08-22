@@ -29,7 +29,7 @@ export class XContentGenerator {
       category: "community_building",
       templates: [
         "Every warrior in our pack matters. Together we've {achievement}. The journey continues!",
-        "Building the strongest Solana army isn't just about numbers—it's about {value}. Join us.",
+        "Building the strongest Solana army isn't just about numbers, it's about {value}. Join us.",
         "United we rise, divided we fall. Our community just {milestone}. Proud of every single one of you!",
       ],
       hashtags: [
