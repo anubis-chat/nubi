@@ -1,7 +1,7 @@
 # NUBI Telegram Bot Guide
 
 ## Bot Information
-- **Username:** @NUBIAnubisBot  
+- **Username:** @anubis_cult_bot  
 - **Token:** 8399141783:AAFKWLZuW3T62Q5u4LMf_dOoqbCjUSbOqlU
 - **Status:** Active ✅
 
@@ -86,7 +86,7 @@ These commands are **only visible and usable by group administrators**:
 ## Setup for New Groups
 
 ### Adding Bot to Your Group
-1. Add @NUBIAnubisBot to your group
+1. Add @anubis_cult_bot to your group
 2. Make bot an administrator (required for features)
 3. Grant these permissions:
    - Delete messages
