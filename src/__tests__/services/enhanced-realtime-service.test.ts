@@ -230,7 +230,9 @@ describe("Enhanced Realtime Service", () => {
 
       // Manually add a subscriber to the service for this test
       const mockSocket = mockSocketServer.sockets.sockets.get("test-socket-1");
-      service.subscribers = new Map([["nubiRaidUpdate", new Set(["test-socket-1"])]]);
+      service.subscribers = new Map([
+        ["nubiRaidUpdate", new Set(["test-socket-1"])],
+      ]);
 
       // Get the raid session handler
       const channelMock = mockSupabaseClient.channel();
@@ -260,9 +262,11 @@ describe("Enhanced Realtime Service", () => {
         },
       };
 
-      // Manually add a subscriber to the service for this test  
+      // Manually add a subscriber to the service for this test
       const mockSocket = mockSocketServer.sockets.sockets.get("test-socket-1");
-      service.subscribers = new Map([["personalityEvolution", new Set(["test-socket-1"])]]);
+      service.subscribers = new Map([
+        ["personalityEvolution", new Set(["test-socket-1"])],
+      ]);
 
       const channelMock = mockSupabaseClient.channel();
       const onCall = channelMock.on.mock.calls.find(

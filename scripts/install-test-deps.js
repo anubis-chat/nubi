@@ -2,6 +2,7 @@
 
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { spawnSync } from 'child_process';
 
 const testDependencies = {
   '@cypress/react': '^9.0.1',
@@ -36,13 +37,16 @@ function installTestDependencies() {
 
   console.log('Installing test dependencies...');
   try {
-    const proc = Bun.spawnSync(['bun', 'add', '-d', ...missingDeps], {
-      stdout: 'inherit',
-      stderr: 'inherit',
+    // Run via Bun CLI even though this script runs under Node
+    const proc = spawnSync('bun', ['add', '-d', ...missingDeps], {
+      stdio: 'inherit',
       cwd: process.cwd(),
     });
 
-    if (proc.exitCode !== 0) {
+    if (proc.error) {
+      throw proc.error;
+    }
+    if (typeof proc.status === 'number' && proc.status !== 0) {
       throw new Error('bun add command failed');
     }
     console.log('✓ Test dependencies installed successfully');

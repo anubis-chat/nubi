@@ -37,13 +37,14 @@ function createMockRuntime(config?: any): IAgentRuntime {
       let callCount = 0;
       const responses = [
         "🚀 This is awesome and exciting!", // For excited context
-        "hey friend, what's up!", // For friend context  
+        "hey friend, what's up!", // For friend context
         "gm! hello there", // For greeting
         "haha that's funny! loving this mood 😄", // For playful
       ];
-      
+
       return async (modelType: any, params: any) => {
-        const response = responses[callCount % responses.length] || "AI generated response";
+        const response =
+          responses[callCount % responses.length] || "AI generated response";
         callCount++;
         return response;
       };

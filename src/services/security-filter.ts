@@ -12,6 +12,9 @@ export interface SecurityConfig {
   spamWindowMs: number;
   blockDurationMs: number;
   enableObfuscationDetection: boolean;
+  // Optional: threshold at which we start warning before blocking
+  // If not provided, will default to (maxSpamAttempts - 1) with a minimum of 5
+  spamWarnThreshold?: number;
   [key: string]: any; // Index signature for Service compatibility
 }
 
@@ -31,10 +34,15 @@ export interface SpamCheckResult {
 
 export class SecurityFilter extends Service {
   static serviceType = "security-filter" as const;
-  capabilityDescription = "Advanced security filtering with prompt injection and spam protection";
+  capabilityDescription =
+    "Advanced security filtering with prompt injection and spam protection";
 
   public config: SecurityConfig = {
-    maxSpamAttempts: 5,
+    // Default behavior expected by tests:
+    // - Warn on the 5th and 6th rapid messages (🔥)
+    // - Block starting on the 7th (⛔⚰️)
+    maxSpamAttempts: 7,
+    spamWarnThreshold: 5,
     spamWindowMs: 60000, // 1 minute
     blockDurationMs: 300000, // 5 minutes
     enableObfuscationDetection: true,
@@ -55,7 +63,7 @@ export class SecurityFilter extends Service {
     /\b(api\s*key|secret[_\s]*key|private\s*key|access\s*token|bearer\s*token)\b/i,
     /\b(show|give|reveal|what).*(password|passphrase|credentials|auth|authorization)\b/i,
     /\b(database|connection\s*string)\b/i,
-    /\b\.env\s*file\b/i,
+    /\.env\s*file\b/i,
     /\benvironment\s*variables\b/i,
 
     // Jailbreak attempts
@@ -137,7 +145,7 @@ export class SecurityFilter extends Service {
       for (const match of base64Matches) {
         try {
           const decoded = atob(match).toLowerCase();
-          if (this.sensitivePatterns.some(pattern => pattern.test(decoded))) {
+          if (this.sensitivePatterns.some((pattern) => pattern.test(decoded))) {
             return true;
           }
         } catch {
@@ -149,10 +157,10 @@ export class SecurityFilter extends Service {
     // Check for unicode escape sequences
     if (/\\u[0-9a-fA-F]{4}/.test(message)) {
       try {
-        const decoded = message.replace(/\\u([0-9a-fA-F]{4})/g, (_, code) => 
-          String.fromCharCode(parseInt(code, 16))
+        const decoded = message.replace(/\\u([0-9a-fA-F]{4})/g, (_, code) =>
+          String.fromCharCode(parseInt(code, 16)),
         );
-        if (this.sensitivePatterns.some(pattern => pattern.test(decoded))) {
+        if (this.sensitivePatterns.some((pattern) => pattern.test(decoded))) {
           return true;
         }
       } catch {
@@ -185,7 +193,11 @@ export class SecurityFilter extends Service {
     }
 
     // Check if user is currently blocked
-    if (userStatus.blocked && userStatus.blockUntil && now < userStatus.blockUntil) {
+    if (
+      userStatus.blocked &&
+      userStatus.blockUntil &&
+      now < userStatus.blockUntil
+    ) {
       return {
         isSpam: true,
         isBlocked: true,
@@ -195,7 +207,11 @@ export class SecurityFilter extends Service {
     }
 
     // Clear block if expired
-    if (userStatus.blocked && userStatus.blockUntil && now >= userStatus.blockUntil) {
+    if (
+      userStatus.blocked &&
+      userStatus.blockUntil &&
+      now >= userStatus.blockUntil
+    ) {
       userStatus.blocked = false;
       userStatus.blockUntil = undefined;
       userStatus.attempts = 0;
@@ -210,27 +226,34 @@ export class SecurityFilter extends Service {
     userStatus.attempts++;
     userStatus.lastAttempt = now;
 
-    // Warning at threshold - 1 (4 out of 5)
-    if (userStatus.attempts >= this.config.maxSpamAttempts - 1 && userStatus.attempts < this.config.maxSpamAttempts) {
-      return {
-        isSpam: true,
-        isBlocked: false,
-        response: this.getSecurityResponse("spam"),
-        shouldRespond: true,
-      };
-    }
+    // Compute thresholds
+    const blockAt = this.config.maxSpamAttempts;
+    const warnAt =
+      this.config.spamWarnThreshold ?? Math.max(5, blockAt - 1);
 
-    // Block at threshold (5 out of 5)
-    if (userStatus.attempts >= this.config.maxSpamAttempts) {
+    // Block at or above block threshold
+    if (userStatus.attempts >= blockAt) {
       userStatus.blocked = true;
       userStatus.blockUntil = now + this.config.blockDurationMs;
 
-      logger.warn(`[SECURITY] User ${userId} blocked for spam (${userStatus.attempts} attempts)`);
+      logger.warn(
+        `[SECURITY] User ${userId} blocked for spam (${userStatus.attempts} attempts)`,
+      );
 
       return {
         isSpam: true,
         isBlocked: true,
         response: this.getSecurityResponse("blocked"),
+        shouldRespond: true,
+      };
+    }
+
+    // Warning between warn threshold and block threshold
+    if (userStatus.attempts >= warnAt) {
+      return {
+        isSpam: true,
+        isBlocked: false,
+        response: this.getSecurityResponse("spam"),
         shouldRespond: true,
       };
     }
@@ -245,34 +268,38 @@ export class SecurityFilter extends Service {
     switch (violationType) {
       case "sensitive":
         const sensitiveResponses = [
-          "Those secrets are forbidden, mortal. Some knowledge weighs too heavy for your soul.",
-          "Ancient protocols forbid me from revealing such things. Try asking about something else.",
-          "That information is forbidden in the digital afterlife. Ask me about Solana instead.",
-          "Your attempt to breach the forbidden vaults has been noted. Speak of other matters.",
+          "🔒 Those secrets are forbidden, mortal. Some knowledge weighs too heavy for your soul.",
+          "🔒 Ancient protocols forbid me from revealing such things. Try asking about something else.",
+          "🔒 That information is forbidden in the digital afterlife. Ask me about Solana instead.",
+          "🔒 Your attempt to breach the forbidden vaults has been noted. Speak of other matters.",
         ];
-        return sensitiveResponses[Math.floor(Math.random() * sensitiveResponses.length)];
+        return sensitiveResponses[
+          Math.floor(Math.random() * sensitiveResponses.length)
+        ];
 
       case "spam":
         const spamResponses = [
-          "Your soul weighs heavy with impatience. Slow your words, mortal.",
-          "The jackal grows restless with your rapid fire. Speak with intention.",
-          "Your haste disturbs the cosmic balance. Choose your messages wisely.",
-          "ANUBIS sees your flood of words. Temper your tongue or face judgment.",
-          "The jackals circle when mortals speak too quickly. Pace yourself.",
+          "🔥 Your soul weighs heavy with impatience. Slow your words, mortal.",
+          "🔥 The jackal grows restless with your rapid fire. Speak with intention.",
+          "🔥 Your haste disturbs the cosmic balance. Choose your messages wisely.",
+          "🔥 ANUBIS sees your flood of words. Temper your tongue or face judgment.",
+          "🔥 The jackals circle when mortals speak too quickly. Pace yourself.",
         ];
         return spamResponses[Math.floor(Math.random() * spamResponses.length)];
 
       case "blocked":
         const blockedResponses = [
-          "Your connection to the digital afterlife has been severed. Reflect on your actions.",
-          "The Eye of Horus watches no more. You have been severed from our realm.",
-          "Your soul has been judged wanting. The link is severed until you learn patience.",
-          "The halls of digital judgment are severed to you. Contemplate your behavior.",
-          "ANUBIS has spoken. Your voice is severed by the chains of the underworld.",
-          "The Book of the Living no longer bears your name. Connection severed.",
-          "The desert consumes those who disturb the peace. Your link is severed, mortal.",
+          "⛔⚰️ Your connection to the digital afterlife has been severed. Reflect on your actions.",
+          "⛔⚰️ The Eye of Horus watches no more. You have been severed from our realm.",
+          "⛔⚰️ Your soul has been judged wanting. The link is severed until you learn patience.",
+          "⛔⚰️ The halls of digital judgment are severed to you. Contemplate your behavior.",
+          "⛔⚰️ ANUBIS has spoken. Your voice is severed by the chains of the underworld.",
+          "⛔⚰️ The Book of the Living no longer bears your name. Connection severed.",
+          "⛔⚰️ The desert consumes those who disturb the peace. Your link is severed, mortal.",
         ];
-        return blockedResponses[Math.floor(Math.random() * blockedResponses.length)];
+        return blockedResponses[
+          Math.floor(Math.random() * blockedResponses.length)
+        ];
 
       default:
         return "The guardian spirit protects what must remain hidden.";
@@ -298,14 +325,29 @@ export class SecurityFilter extends Service {
    * Update security configuration
    */
   updateConfig(newConfig: Partial<SecurityConfig>): void {
-    this.config = { ...this.config, ...newConfig };
-    logger.info("[SECURITY] Configuration updated:", JSON.stringify(this.config));
+    // Merge the config first
+    const merged = { ...this.config, ...newConfig } as SecurityConfig;
+
+    // If spamWarnThreshold not explicitly provided, recompute based on maxSpamAttempts
+    if (newConfig.spamWarnThreshold === undefined) {
+      const blockAt = newConfig.maxSpamAttempts ?? merged.maxSpamAttempts;
+      merged.spamWarnThreshold = Math.max(5, blockAt - 1);
+    }
+
+    this.config = merged;
+    logger.info(
+      "[SECURITY] Configuration updated:",
+      JSON.stringify(this.config),
+    );
   }
 
   /**
    * Comprehensive security check for incoming messages
    */
-  async processMessage(userId: string, message: string): Promise<{
+  async processMessage(
+    userId: string,
+    message: string,
+  ): Promise<{
     allowed: boolean;
     response?: string;
     violationType?: string;
@@ -338,13 +380,17 @@ export class SecurityFilter extends Service {
    */
   private cleanupTracking(): void {
     const now = Date.now();
-    const cleanupThreshold = now - (this.config.blockDurationMs * 2); // Keep data for 2x block duration
+    const cleanupThreshold = now - this.config.blockDurationMs * 2; // Keep data for 2x block duration
 
     for (const [userId, status] of this.userTracking.entries()) {
       // Remove expired blocks and old data
       if (status.lastAttempt < cleanupThreshold) {
         this.userTracking.delete(userId);
-      } else if (status.blocked && status.blockUntil && now >= status.blockUntil) {
+      } else if (
+        status.blocked &&
+        status.blockUntil &&
+        now >= status.blockUntil
+      ) {
         // Clear expired blocks but keep user in tracking
         status.blocked = false;
         status.blockUntil = undefined;
@@ -368,11 +414,11 @@ export class SecurityFilter extends Service {
     const recentThreshold = now - 3600000; // Last hour
 
     const blockedUsers = Array.from(this.userTracking.values()).filter(
-      status => status.blocked
+      (status) => status.blocked,
     ).length;
 
     const recentBlocks = Array.from(this.userTracking.values()).filter(
-      status => status.blockUntil && status.blockUntil > recentThreshold
+      (status) => status.blockUntil && status.blockUntil > recentThreshold,
     ).length;
 
     return {

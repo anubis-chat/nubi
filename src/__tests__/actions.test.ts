@@ -111,11 +111,7 @@ describe("Actions", () => {
         let error: Error | null = null;
 
         try {
-          result = await nubiAction.validate(
-            runtime,
-            mockMessage,
-            mockState,
-          );
+          result = await nubiAction.validate(runtime, mockMessage, mockState);
           expect(result).toBe(true);
         } catch (e) {
           error = e as Error;
