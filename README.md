@@ -1,122 +1,182 @@
-# Project Starter
+# Anubis Agent God Mode
 
-This is the starter template for ElizaOS projects.
+Advanced ElizaOS agent with comprehensive personality system, social coordination capabilities, and Telegram raid bot integration.
 
 ## Features
 
-- Pre-configured project structure for ElizaOS development
-- Comprehensive testing setup with component and e2e tests
-- Default character configuration with plugin integration
-- Example service, action, and provider implementations
-- TypeScript configuration for optimal developer experience
-- Built-in documentation and examples
+- **Advanced Personality System**: 120+ dynamic variables with emotional intelligence
+- **Social Coordination**: Telegram raid bot with engagement tracking and leaderboards
+- **Anti-Detection Patterns**: Sophisticated humanization with natural inconsistencies  
+- **Template Engine**: 5-layer prompt chaining with structured outputs
+- **Community Memory**: Persistent relationship and interaction tracking
+- **Real-time Engagement**: X/Twitter integration with verification systems
+- **Modular Architecture**: ElizaOS plugin system with service orchestration
 
-## Getting Started
+## Quick Start
 
 ```bash
-# Create a new project
-elizaos create -t project my-project
-# Dependencies are automatically installed and built
+# Clone and install
+git clone <repository-url>
+cd anubis
+bun install
 
-# Navigate to the project directory
-cd my-project
+# Configure environment
+cp .env.anubis.example .env
+# Edit .env with your API keys
 
-# Start development immediately
+# Start development
 elizaos dev
+
+# OR start production
+elizaos start
+```
+
+## Configuration
+
+### Required Environment Variables
+```bash
+OPENAI_API_KEY=your_openai_key
+```
+
+### Optional Features
+```bash
+# Telegram Raid Bot
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHANNEL_ID=your_channel_id
+TELEGRAM_ADMIN_IDS=admin1,admin2
+
+# X/Twitter Integration  
+TWITTER_API_KEY=your_twitter_key
+TWITTER_API_SECRET_KEY=your_twitter_secret
+TWITTER_ACCESS_TOKEN=your_access_token
+TWITTER_ACCESS_TOKEN_SECRET=your_access_secret
+
+# Additional Platforms
+DISCORD_API_TOKEN=your_discord_token
+ANTHROPIC_API_KEY=your_anthropic_key
 ```
 
 ## Development
 
 ```bash
-# Start development with hot-reloading (recommended)
+# Development with hot-reloading
 elizaos dev
 
-# OR start without hot-reloading
-elizaos start
-# Note: When using 'start', you need to rebuild after changes:
-# bun run build
+# Type checking
+bun run type-check
 
-# Test the project
-elizaos test
+# Run tests
+bun run test
+
+# Format code
+bun run format
+
+# Build for production
+bun run build
 ```
 
 ## Testing
 
-ElizaOS employs a dual testing strategy:
+Comprehensive testing with both component and E2E test suites:
 
-1. **Component Tests** (`src/__tests__/*.test.ts`)
+### Component Tests
+```bash
+# Run all component tests
+bun test src/__tests__/*.test.ts
 
-   - Run with Bun's native test runner
-   - Fast, isolated tests using mocks
-   - Perfect for TDD and component logic
-
-2. **E2E Tests** (`src/__tests__/e2e/*.e2e.ts`)
-   - Run with ElizaOS custom test runner
-   - Real runtime with actual database (PGLite)
-   - Test complete user scenarios
-
-### Test Structure
-
-```
-src/
-  __tests__/              # All tests live inside src
-    *.test.ts            # Component tests (use Bun test runner)
-    e2e/                 # E2E tests (use ElizaOS test runner)
-      project-starter.e2e.ts  # E2E test suite
-      README.md          # E2E testing documentation
-  index.ts               # Export tests here: tests: [ProjectStarterTestSuite]
+# Run specific test suite
+bun test src/__tests__/anubis-core.test.ts
 ```
 
-### Running Tests
+### E2E Tests
+```bash
+# Run full test suite
+elizaos test
 
-- `elizaos test` - Run all tests (component + e2e)
-- `elizaos test component` - Run only component tests
-- `elizaos test e2e` - Run only E2E tests
+# Component tests only
+elizaos test component
 
-### Writing Tests
+# E2E tests only  
+elizaos test e2e
+```
 
-Component tests use bun:test:
+## Architecture
+
+### Core Components
+- **AnubisService**: Main personality and message processing engine
+- **Template System**: YAML-based configuration with variable injection
+- **Anti-Detection**: Natural humanization patterns and inconsistencies
+- **Message Bus**: Event-driven communication between services
+- **Community Memory**: Persistent user relationship tracking
+
+### Telegram Raid System
+- **Raid Coordination**: Automated X post creation and raid management
+- **User-Initiated Raids**: Prophet recognition system for community leaders
+- **Chat Lock Manager**: Permission-based engagement requirements
+- **Engagement Verification**: Real-time tracking with rate limiting
+- **Leaderboards**: Point-based ranking with achievement systems
+
+### Template Engine
+- **5-Layer Processing**: Context → Template → Variables → Personality → Output
+- **120+ Variables**: Dynamic calculations across 8 categories
+- **Structured Outputs**: 6 specialized engagement types
+- **Divine Energy**: 48 Laws of Power integration with manifestation principles
+
+## Plugin System
+
+Built on ElizaOS architecture with proper service hierarchy:
 
 ```typescript
-// Unit test example (__tests__/config.test.ts)
-describe('Configuration', () => {
-  it('should load configuration correctly', () => {
-    expect(config.debug).toBeDefined();
-  });
-});
-
-// Integration test example (__tests__/integration.test.ts)
-describe('Integration: Plugin with Character', () => {
-  it('should initialize character with plugins', async () => {
-    // Test interactions between components
-  });
-});
+// Service registration order
+1. Database Adapters
+2. Services (AnubisService, MessageBus, etc.)
+3. Providers (Context, Knowledge, etc.)
+4. Actions (Message processing, Raids, etc.)
+5. Evaluators (Learning, Adaptation, etc.)
+6. Events (Cross-service communication)
+7. Routes (HTTP endpoints)
 ```
 
-E2E tests use ElizaOS test interface:
+## Deployment
 
-```typescript
-// E2E test example (e2e/project.test.ts)
-export class ProjectTestSuite implements TestSuite {
-  name = 'project_test_suite';
-  tests = [
-    {
-      name: 'project_initialization',
-      fn: async (runtime) => {
-        // Test project in a real runtime
-      },
-    },
-  ];
-}
-
-export default new ProjectTestSuite();
+### Local Development
+```bash
+elizaos dev
 ```
 
-The test utilities in `__tests__/utils/` provide helper functions to simplify writing tests.
+### Production
+```bash
+# Build optimized version
+bun run build
 
-## Configuration
+# Start production server
+elizaos start
+```
 
-Customize your project by modifying:
+### Docker (Optional)
+```bash
+# Build container
+docker build -t anubis-agent .
 
-- `src/index.ts` - Main entry point
-- `src/character.ts` - Character definition
+# Run with environment file
+docker run --env-file .env -p 3000:3000 anubis-agent
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Run tests: `bun run test`
+4. Commit changes: `git commit -m 'Add amazing feature'`
+5. Push to branch: `git push origin feature/amazing-feature`
+6. Open Pull Request
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Support
+
+- GitHub Issues: Report bugs and feature requests
+- Documentation: See `/knowledge` directory for detailed guides
+- Community: Join our Telegram for support and discussions
