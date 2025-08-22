@@ -53,8 +53,8 @@ export class XPostingService {
       text: `The Solana ecosystem continues to evolve. ${randomTopic} brings new opportunities for builders and believers. Join us as we shape the future of Web3.`,
     };
 
-    // Add hashtags
-    const hashtags = "\n\n#Solana #DeFi #Web3 #Community";
+    // Add hashtags - Official Anubis.Chat community tags
+    const hashtags = "\n\n#AnubisChat #Anubis #anubisai #OpenSource";
     const content = response.text.trim() + hashtags;
 
     return content.substring(0, 280); // Ensure within Twitter limit

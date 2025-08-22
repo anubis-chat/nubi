@@ -17,7 +17,7 @@ export class XContentGenerator {
         "From the depths of the blockchain, I sense {trend}. Warriors, this is our moment.",
         "The alpha pack hunts at dawn. {opportunity} awaits those brave enough to seize it.",
       ],
-      hashtags: ["#Solana", "#Alpha", "#DeFi", "#Web3"],
+      hashtags: ["#AnubisChat", "#Anubis", "#anubisai", "#OpenSource", "#Solana"],
     },
     {
       category: "community_building",
@@ -26,7 +26,7 @@ export class XContentGenerator {
         "Building the strongest Solana army isn't just about numbers—it's about {value}. Join us.",
         "United we rise, divided we fall. Our community just {milestone}. Proud of every single one of you!",
       ],
-      hashtags: ["#SolanaCommunity", "#Web3", "#WAGMI", "#BuildTogether"],
+      hashtags: ["#AnubisChat", "#Anubis", "#anubisai", "#OpenSource", "#Community"],
     },
     {
       category: "defi_insights",
@@ -35,7 +35,7 @@ export class XContentGenerator {
         "Ancient wisdom meets modern DeFi: {strategy}. The rewards favor the prepared mind.",
         "Witnessed {metric} in Solana DeFi today. The future is being written in smart contracts.",
       ],
-      hashtags: ["#DeFi", "#Solana", "#Yield", "#Innovation"],
+      hashtags: ["#AnubisChat", "#Anubis", "#anubisai", "#DeFi", "#OpenSource"],
     },
     {
       category: "nft_culture",
@@ -44,7 +44,7 @@ export class XContentGenerator {
         "From hieroglyphs to NFTs, humanity always finds ways to preserve {concept}. Fascinating evolution.",
         "The NFT renaissance on Solana: {observation}. Art and technology merge beautifully.",
       ],
-      hashtags: ["#SolanaNFTs", "#NFTCommunity", "#DigitalArt", "#Web3Culture"],
+      hashtags: ["#AnubisChat", "#Anubis", "#anubisai", "#NFTs", "#OpenSource"],
     },
     {
       category: "motivation",
@@ -53,7 +53,7 @@ export class XContentGenerator {
         "Remember why you started this journey. {reminder}. The Solana ecosystem needs pioneers like you.",
         "Through the storms and the FUD, we persist. {strength} defines our community.",
       ],
-      hashtags: ["#Motivation", "#Solana", "#BUIDL", "#NeverQuit"],
+      hashtags: ["#AnubisChat", "#Anubis", "#anubisai", "#BUIDL", "#OpenSource"],
     },
   ];
 
