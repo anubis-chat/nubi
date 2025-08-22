@@ -1,65 +1,56 @@
 # NUBI - The Symbiosis of Anubis
 
-Advanced ElizaOS agent with personality system, Discord/Telegram bot integration, and symbiotic consciousness.
+AI agent built on ElizaOS with Discord and Telegram bot integration.
 
 ## Overview
 
-NUBI is an AI agent built on the ElizaOS framework, representing the symbiotic fusion of Anubis's divine consciousness with adaptive intelligence. The agent supports multi-platform communication through Discord and Telegram.
+NUBI is an AI conversational agent that engages users across Discord and Telegram platforms. The bot features natural language processing, personality persistence, and platform-specific command systems.
 
 ## Team
 
 **Developed by SYMLabs**
 
 ### Co-Founders
-- **dEXploarer** - Co-Founder of SYMLabs
+- **dEXploarer** 
   - X: [@dEXploarer](https://x.com/dEXploarer)
   - Telegram: @dexploarerdev
   - Discord: skirrskirrr
 
-- **SYMBiEX** - Co-Founder of SYMLabs
+- **SYMBiEX**
   - X: [@SYMBiEX](https://x.com/SYMBiEX)
   - Telegram: @SYMBiEX
   - Discord: cidsociety
 
 ### Community Moderators
-- **IrieRubz** - High-ranking community member & Telegram moderator
-  - X: @irierubz
-  - Telegram: @IrieRubz
-
-- **stoicmido** - Telegram moderator
-  - Telegram: @stoicmido
-
-## Community
-
-- **X Community**: https://x.com/i/communities/1955910343378505822
-- **Official Hashtags**: #AnubisChat #Anubis #anubisai #OpenSource
-- **Platform**: @AnubisChat
-- **Agent X**: @UnderworldAgent
+- **IrieRubz** - Telegram: @IrieRubz, X: @irierubz
+- **stoicmido** - Telegram: @stoicmido
 
 ## Features
 
-### Core Capabilities
-- **Personality System**: 10 personality dimensions with emotional intelligence
-- **Anti-Detection Patterns**: Human-like behavior with natural variations
-- **Community Memory**: Tracks relationships and interactions
-- **Multi-Platform Support**: Discord and Telegram integration
-- **Knowledge Base**: Comprehensive understanding of Web3, DeFi, and Solana
+### Implemented
+- ✅ Natural language conversation
+- ✅ Discord bot with mentions/DM support
+- ✅ Telegram bot with command system
+- ✅ Personality system with consistent character
+- ✅ Community memory tracking
+- ✅ Admin command scopes (Telegram)
+- ✅ Anti-detection patterns for human-like responses
 
-### Platform Integrations
-- Discord bot with role-based commands
-- Telegram bot with admin command scopes
-- Twitter/X monitoring (read-only mode)
+### In Development
+- 🔧 Raid system with leaderboards
+- 🔧 Achievement tracking
+- 🔧 Pyramid referral system
 
-## Installation
+## Quick Start
 
 ### Prerequisites
-- Node.js 18+ or Bun runtime
-- OpenAI API key (required)
-- Platform tokens (Discord/Telegram)
+- Node.js 18+ or Bun
+- OpenAI API key
+- Discord and/or Telegram bot tokens
 
-### Setup
+### Installation
 
-1. **Clone the repository**
+1. **Clone repository**
 ```bash
 git clone https://github.com/anubis-chat/nubi
 cd anubis
@@ -73,176 +64,115 @@ bun install
 3. **Configure environment**
 ```bash
 cp .env.example .env
-# Edit .env with your API keys
+# Add your API keys to .env
 ```
 
-4. **Build the project**
+4. **Build project**
 ```bash
 bun run build
 ```
 
-5. **Start the agent**
+5. **Start bot**
 ```bash
 bun run start
 ```
 
 ## Configuration
 
-### Required Environment Variables
+### Required
 ```bash
-# AI Provider (at least one required)
-OPENAI_API_KEY=your_openai_key
-
-# Discord Bot
-DISCORD_APPLICATION_ID=your_app_id
-DISCORD_API_TOKEN=your_bot_token
-
-# Telegram Bot
-TELEGRAM_BOT_TOKEN=your_bot_token
+OPENAI_API_KEY=your_key_here
 ```
 
-### Optional Settings
+### Discord Bot
 ```bash
-# Anti-Detection System
-ANUBIS_TYPO_RATE=0.03
-ANUBIS_CONTRADICTION_RATE=0.15
-ANUBIS_EMOTIONAL_PERSISTENCE=1800000
-
-# Features
-ENABLE_DISCORD_BOT=true
-ENABLE_TELEGRAM_BOT=true
-ENABLE_COMMUNITY_MEMORY=true
+DISCORD_APPLICATION_ID=1407352492383277197
+DISCORD_API_TOKEN=your_discord_token
 ```
 
-## Telegram Bot
-
-### Setup
+### Telegram Bot  
 ```bash
-# Configure all bot settings programmatically
-bun run setup:telegram
+TELEGRAM_BOT_TOKEN=your_telegram_token
+TELEGRAM_ADMIN_IDS=@dexploarerdev,@SYMBiEX,@IrieRubz,@stoicmido
 ```
 
-### Commands
+See [TELEGRAM_BOT_GUIDE.md](./TELEGRAM_BOT_GUIDE.md) for detailed Telegram setup.
 
-#### Public Commands
-- `/start` - Begin interaction with NUBI
-- `/help` - Get guidance
-- `/about` - Learn about NUBI and SYMLabs
-- `/team` - Meet the SYMLabs team
-- `/community` - Join X community
-- `/hashtags` - Get official hashtags
-- `/links` - All official links
+## Platform Guides
 
-#### Raid Commands (when enabled)
-- `/raid` - Join active raid
-- `/leaderboard` - View rankings
-- `/mystats` - Personal statistics
-- `/achievements` - Display achievements
+### Telegram Bot
+- **Setup:** Run `bun run setup:telegram` to configure commands
+- **Guide:** See [TELEGRAM_BOT_GUIDE.md](./TELEGRAM_BOT_GUIDE.md)
+- **Username:** @NUBIAnubisBot
+- **Features:** Natural chat, admin commands, raid system (when enabled)
 
-#### Admin Commands (Group administrators only)
-- `/ban` - Ban user from raids
-- `/unban` - Unban user
-- `/stats` - View raid statistics
-- `/announce` - Make announcement
-- `/lock` - Lock chat during raid
-- `/unlock` - Unlock chat
+### Discord Bot
+- **Guide:** See [DISCORD_BOT_GUIDE.md](./DISCORD_BOT_GUIDE.md)
+- **Application ID:** 1407352492383277197
+- **Features:** Responds to mentions and DMs
+- **Permissions needed:** Send Messages, Read Message History, Embed Links
 
-### Configuration
-The Telegram bot uses command scopes to show different commands to different users:
-- Regular users see basic commands
-- Group administrators see additional admin commands
-- Private chats have a subset of commands
+## Commands
 
-## Discord Bot
+### Telegram Commands
+**Regular users:** `/start`, `/help`, `/about`, `/team`, `/community`, `/links`  
+**Admins only:** `/ban`, `/unban`, `/announce`, `/config`, `/lock`, `/unlock`
 
-### Setup
-1. Add bot to your server using the Discord application ID
-2. Ensure bot has appropriate permissions:
-   - Send Messages
-   - Read Message History
-   - Embed Links
-   - Add Reactions
+See full command list in [TELEGRAM_BOT_GUIDE.md](./TELEGRAM_BOT_GUIDE.md)
 
-### Features
-- Natural conversation when mentioned
-- Responds to DMs automatically
-- Context-aware responses
-- Personality persistence across conversations
-
-### Permissions Required
-- Send Messages
-- Read Message History
-- Embed Links
-- Use External Emojis
-- Add Reactions
-
-## Architecture
-
-### Core Components
-- **Character System** (`nubi-character.ts`) - Personality and knowledge base
-- **Plugin System** (`nubi-plugin.ts`) - Actions, evaluators, and services
-- **Service Layer** - Emotional intelligence, anti-detection, community memory
-- **Platform Integrations** - Discord and Telegram clients
-
-### Services
-- `NubiService` - Main orchestration service
-- `CommunityMemoryService` - Tracks user relationships
-- `EmotionalIntelligenceSystem` - Manages emotional states
-- `AntiDetectionSystem` - Human-like behavior patterns
-
-## Scripts
-
-```bash
-# Development
-bun run dev         # Start in development mode
-bun run build       # Build for production
-bun run start       # Start production server
-
-# Testing
-bun run test        # Run all tests
-bun run type-check  # TypeScript validation
-
-# Setup
-bun run setup:telegram  # Configure Telegram bot
-
-# Utilities
-bun run format      # Format code with Prettier
-```
+### Discord
+- Mention the bot to chat
+- DMs are automatically responded to
+- No slash commands required
 
 ## Project Structure
 
 ```
 anubis/
 ├── src/
-│   ├── index.ts                 # Main entry point
-│   ├── nubi-character.ts        # Character definition
-│   ├── nubi-plugin.ts           # Plugin architecture
-│   ├── nubi-service.ts          # Core service
-│   ├── community-memory-service.ts
-│   └── telegram-raids/          # Telegram features
-├── config/
-│   └── *.yaml                   # Configuration files
+│   ├── index.ts                    # Entry point
+│   ├── nubi-character.ts          # Character definition
+│   ├── nubi-plugin.ts             # Plugin system
+│   ├── nubi-service.ts            # Core service
+│   └── community-memory-service.ts # User tracking
 ├── scripts/
-│   └── setup-telegram-bot.ts    # Telegram setup script
-└── .env                         # Environment configuration
+│   └── setup-telegram-bot.ts      # Telegram setup
+├── config/                        # YAML configurations
+└── .env                           # Environment variables
 ```
 
-## Contributing
+## Scripts
 
-This project is developed and maintained by SYMLabs. For questions or support:
-- Contact the team via social platforms listed above
+```bash
+bun run build          # Build project
+bun run start          # Start bot
+bun run setup:telegram # Configure Telegram bot
+bun run test          # Run tests
+bun run format        # Format code
+```
+
+## Community
+
+- **X Community:** https://x.com/i/communities/1955910343378505822
+- **Hashtags:** #AnubisChat #Anubis #anubisai #OpenSource
+- **Platform:** [@AnubisChat](https://x.com/AnubisChat)
+- **Bot:** [@UnderworldAgent](https://x.com/UnderworldAgent)
+
+## Support
+
+For issues or questions:
+- Contact @dexploarerdev or @SYMBiEX on Telegram
 - Join the X community
-- Reach out on Telegram
+- Open an issue on GitHub
 
 ## License
 
-MIT License - See LICENSE file for details
+MIT
 
 ## Acknowledgments
 
-Built on [ElizaOS](https://github.com/elizaos/elizaos) framework
+Built on [ElizaOS](https://github.com/elizaos/elizaos)
 
 ---
 
-**Developed by dEXploarer & SYMBiEX**  
-*Co-Founders of SYMLabs*
+**SYMLabs** - dEXploarer & SYMBiEX, Co-Founders
